@@ -6,15 +6,10 @@
 Motor motor1 = Motor(AIN1, AIN2, PWMA, offsetA, STBY); //I need to check the motor code I wrote for testing to change these. I know offset needs to be changed
 Motor motor2 = Motor(BIN1, BIN2, PWMB, offsetB, STBY);
 
-Timer calibrationTimer = Timer(CALIBRATION_TIME);
-Timer outputTimer = Timer(1000);// one second interval between outputs
-
 void setup()
-//all actions that are only done once
 {
   Serial.begin(9600);
-  pinMode(13, OUTPUT);         //only needed once so done in setup()
-  Serial.println("Connected"); //quick check to make sure device is communicating
+  Serial.println("Connected");
 
   //Call calibrate function in setup, We'll work on that code shortly
   //calibrate();
@@ -31,25 +26,20 @@ void loop()
   readSensor();             //Collects data from sensors and stores in an array
   IRdirection = getRatio(); //Gets ratio from 0 to 1, going to try and move this higher up to see if maybe it helps?
 
-  if (!onLine()) //if the robot is not on the line. brake, and blink. It will repeat when loop repeats
-  {
-    brake(motor1, motor2);
-    blink();
-    //readSensor();
-    //onLine();
-  }
-
   //delay(500); //Adding this to be able to read/print percent diff values and see if it's a processing speed issue
 
   if (percentDiff() <= TURN_THRESHOLD)
   { //This function will check to see if there is a significant difference between the left and right sensors, if there is, it will move on to turning prompts, if not it will just drive straight
 
-    forward(motor1, motor2, (MAX_SPEED * 0.6));
+    //forward(motor1, motor2, (MAX_SPEED * 0.6));
     straightForward();
+    Serial.println("Straight forward");
   }
+
   else
   {
     propForward(IRdirection); //Changes made in the motor library
+    Serial.println("propForward");
   }
   //This will store sensor data in a large array, not using rn
   //storeData();
@@ -147,7 +137,14 @@ bool onLine()
       break;                               // leave the loop, no reason to check other sensors.
     }
   }
-  return lineDetected; // returns true if a line is detected, false otherwise
+
+  while (lineDetected == false) //changed this notation
+  {                             //if no line was found, brake for set time.
+    brake(motor1, motor2);
+    blink();
+    readSensor();
+    onLine(); //Brakes motors and keeps blinking while not on the line
+}
 }
 
 void readSensor()
@@ -163,10 +160,15 @@ void readSensor()
 void blink() //Changed blink to only blink once, but for the online function it calls blink() as long as the device isn't on a line
 {
   digitalWrite(13, HIGH);
-  delay(500);
+  //delay(500);
   digitalWrite(13, LOW);
 }
 
+void updateTime()
+{
+  //Make sure to always use prevTime = millis() before calling this function, or else it doesn't work
+  deltaTime = prevTime - millis();
+}
 
 void propForward(float ratio)
 {
