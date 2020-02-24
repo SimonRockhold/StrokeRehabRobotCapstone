@@ -23,16 +23,14 @@ void setup()
 void loop()
 {
 
-  readSensor(); //Collects data from sensors and stores in an array
+  readSensor();              //Collects data from sensors and stores in an array
   IRdirection = convertIR(); //Gets ratio from 0 to 1, going to try and move this higher up to see if maybe it helps?
-
 
   onLine(); //Detects if on line, NEEDS MORE WORK
 
   delay(500); //Adding this to be able to read/print percent diff values and see if it's a processing speed issue
-  
-  
-  if (tempPercentDiff <= TURN_THRESHOLD)
+
+  if (percentDiff() <= TURN_THRESHOLD)
   { //This function will check to see if there is a significant difference between the left and right sensors, if there is, it will move on to turning prompts, if not it will just drive straight
 
     forward(motor1, motor2, (MAX_SPEED * 0.6));
@@ -41,20 +39,21 @@ void loop()
 
   else
   {
-    propForward(IRdirection); //Changes made in the motor library 
+    propForward(IRdirection); //Changes made in the motor library
   }
   //This will store sensor data in a large array, not using rn
   //storeData();
-  
-  //This will allow it to follow a line for a predetermined amount of time
-  if(millis() >= runTime) {
-    brake(motor1,motor2);
-    blink();
-}
 
+  //This will allow it to follow a line for a predetermined amount of time
+  if (millis() >= runTime)
+  {
+    brake(motor1, motor2);
+    blink();
+  }
 
   //Print things for debugging
-  for(int i = 0; i < NUM_SENSORS; i++) {
+  for (int i = 0; i < NUM_SENSORS; i++)
+  {
     Serial.print(sensorDataRaw[i]);
     Serial.print(", ");
   }
@@ -64,9 +63,7 @@ void loop()
   Serial.println(" ");
 
   delay(500); //Adding this to let things print/read data
-
-    }
-
+}
 
 float percentDiff()
 {
@@ -80,16 +77,17 @@ float percentDiff()
 float convertIR()
 {
   float outputArr[NUM_SENSORS]; //Create temporary array to store values
-  float sum = 0; //Initialize sum variable
-  
+  float sum = 0;                //Initialize sum variable
+
   for (int i = 0; i < NUM_SENSORS; i++)
   {
-      outputArr[i] = sensorDataRaw[i] * scaleArray[i]; //stores scaled values
+    outputArr[i] = sensorDataRaw[i] * scaleArray[i]; //stores scaled values
   }
 
   for (int i = 0; i < NUM_SENSORS; i++)
   {
-    if(i != 2) {
+    if (i != 2)
+    {
       sum = sum + outputArr[i];
     }
   }
@@ -111,20 +109,18 @@ float convertIR()
   //May want to try and remove this
   sum = constrain(sum, (-OUTER_WEIGHT * maxIR), (OUTER_WEIGHT * maxIR));
 
-
   //maps to 0 to 1, try and mess with this
   float temp = map(sum, (-OUTER_WEIGHT * maxIR), (OUTER_WEIGHT * maxIR), 0, 1000.00); //Values were in wrong order, they've been rearranged
-
 
   //Printing for debugging
   Serial.print("Sum: ");
   Serial.print(sum);
-  
+
   Serial.print(" ratio: ");
-  Serial.print(temp/1000.00);
+  Serial.print(temp / 1000.00);
 
   Serial.println(" ");
-  
+
   return (temp / 1000.00);
 }
 
@@ -135,14 +131,14 @@ void onLine()
   for (int i = 0; i < NUM_SENSORS; i++)
   {
     if (sensorDataRaw[i] >= (minIR * 1.3)) //May want to change the 1.3
-    { //checks each sensor to see if a line is detected
-      lineDetected = true; //if line is found, set lineDetected flag to true
-      break;               // leave the loop, no reason to check other sensors.
+    {                                      //checks each sensor to see if a line is detected
+      lineDetected = true;                 //if line is found, set lineDetected flag to true
+      break;                               // leave the loop, no reason to check other sensors.
     }
   }
-  
+
   while (!lineDetected) //changed this notation
-  { //if no line was found, brake for set time.
+  {                     //if no line was found, brake for set time.
     brake(motor1, motor2);
     blink();
     readSensor();
@@ -150,58 +146,43 @@ void onLine()
   }
 }
 
-
 void readSensor()
 {
   //Serial.println("readSensor()");
   for (int x = 0; x < NUM_SENSORS; x++)
-{
+  {
     //Serial.println(analogRead(IRSensor[x]));
     sensorDataRaw[x] = analogRead(IRSensor[x]);
   }
 }
 
 void blink() //Changed blink to only blink once, but for the online function it calls blink() as long as the device isn't on a line
-  {
+{
   pinMode(13, OUTPUT);
 
   digitalWrite(13, HIGH);
   delay(500);
   digitalWrite(13, LOW);
-  }
-
-
-
-
-
-
+}
 
 void updateTime()
-  {
+{
   //Make sure to always use prevTime = millis() before calling this function, or else it doesn't work
   deltaTime = prevTime - millis();
-
 }
 
 void propForward(float ratio)
 {
   motor1.drive(((MAX_SPEED * ratio)), DRIVE_TIME);
   motor2.drive((MAX_SPEED * (1 - ratio)), DRIVE_TIME);
-  }
+}
 
 //Try this in order to resolve issues around the normal forward() method being blocking
-void straightForward() {
+void straightForward()
+{
   motor1.drive((MAX_SPEED * 0.6), DRIVE_TIME);
   motor2.drive((MAX_SPEED * 0.6), DRIVE_TIME);
 }
-
-
-
-
-
-
-
-
 
 //It would be nice to eventually include a calibrate function, however for now we can simply hard code the IR max and min values based on
 //results we get from our IR sensor only test code
