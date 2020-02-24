@@ -7,15 +7,17 @@ Motor motor1 = Motor(AIN1, AIN2, PWMA, offsetA, STBY); //I need to check the mot
 Motor motor2 = Motor(BIN1, BIN2, PWMB, offsetB, STBY);
 
 void setup()
+//all actions that are only done once
 {
   Serial.begin(9600);
-  Serial.println("Connected");
+  pinMode(13, OUTPUT);         //only needed once so done in setup()
+  Serial.println("Connected"); //quick check to make sure device is communicating
 
   //Call calibrate function in setup, We'll work on that code shortly
   //calibrate();
 
   //Wait 5 seconds before driving
-  delay(5000);
+  delay(5 * SECOND);
 }
 
 //////////////////////// loop
@@ -23,12 +25,18 @@ void setup()
 void loop()
 {
 
-  readSensor();              //Collects data from sensors and stores in an array
-  IRdirection = convertIR(); //Gets ratio from 0 to 1, going to try and move this higher up to see if maybe it helps?
+  readSensor();             //Collects data from sensors and stores in an array
+  IRdirection = getRatio(); //Gets ratio from 0 to 1, going to try and move this higher up to see if maybe it helps?
 
-  onLine(); //Detects if on line, NEEDS MORE WORK
+  if (!onLine()) //if the robot is not on the line. brake, and blink. It will repeat when loop repeats
+  {
+    brake(motor1, motor2);
+    blink();
+    //readSensor();
+    //onLine();
+  }
 
-  delay(500); //Adding this to be able to read/print percent diff values and see if it's a processing speed issue
+  //delay(500); //Adding this to be able to read/print percent diff values and see if it's a processing speed issue
 
   if (percentDiff() <= TURN_THRESHOLD)
   { //This function will check to see if there is a significant difference between the left and right sensors, if there is, it will move on to turning prompts, if not it will just drive straight
@@ -36,7 +44,6 @@ void loop()
     forward(motor1, motor2, (MAX_SPEED * 0.6));
     straightForward();
   }
-
   else
   {
     propForward(IRdirection); //Changes made in the motor library
@@ -45,24 +52,25 @@ void loop()
   //storeData();
 
   //This will allow it to follow a line for a predetermined amount of time
-  if (millis() >= runTime)
+  if (millis() >= RUN_TIME)
   {
     brake(motor1, motor2);
     blink();
   }
 
-  //Print things for debugging
-  for (int i = 0; i < NUM_SENSORS; i++)
+  if (timeElapsed(SECOND)) //
   {
-    Serial.print(sensorDataRaw[i]);
-    Serial.print(", ");
+    //Print things for debugging
+    for (int i = 0; i < NUM_SENSORS; i++)
+    {
+      Serial.print(sensorDataRaw[i]);
+      Serial.print(", ");
+    }
+
+    Serial.print("ratio: ");
+    Serial.print(IRdirection);
+    Serial.println(" ");
   }
-
-  Serial.print("ratio: ");
-  Serial.print(IRdirection);
-  Serial.println(" ");
-
-  delay(500); //Adding this to let things print/read data
 }
 
 float percentDiff()
@@ -74,14 +82,14 @@ float percentDiff()
 }
 
 //This should be a better way to find a turning value
-float convertIR()
+float getRatio() //used to be convertIR(), renamed for clarity
 {
   float outputArr[NUM_SENSORS]; //Create temporary array to store values
   float sum = 0;                //Initialize sum variable
 
   for (int i = 0; i < NUM_SENSORS; i++)
   {
-    outputArr[i] = sensorDataRaw[i] * scaleArray[i]; //stores scaled values
+    outputArr[i] = sensorDataRaw[i] * weightArray[i]; //stores weighted values
   }
 
   for (int i = 0; i < NUM_SENSORS; i++)
@@ -109,7 +117,7 @@ float convertIR()
   //May want to try and remove this
   sum = constrain(sum, (-OUTER_WEIGHT * maxIR), (OUTER_WEIGHT * maxIR));
 
-  //maps to 0 to 1, try and mess with this
+  //maps to range 0 to 1000
   float temp = map(sum, (-OUTER_WEIGHT * maxIR), (OUTER_WEIGHT * maxIR), 0, 1000.00); //Values were in wrong order, they've been rearranged
 
   //Printing for debugging
@@ -121,11 +129,11 @@ float convertIR()
 
   Serial.println(" ");
 
-  return (temp / 1000.00);
+  return (temp / 1000.00); //returns value from 0 to 1 with precsion of 5 decimal points. Likely more than needed.
 }
 
-//Continually runs until the sensors detect a line (will be stuck in while loop while all sensors read < minIR*1.1)
-void onLine()
+//returns whether or not a line is detected.
+bool onLine()
 {
   bool lineDetected = false;
   for (int i = 0; i < NUM_SENSORS; i++)
@@ -136,14 +144,7 @@ void onLine()
       break;                               // leave the loop, no reason to check other sensors.
     }
   }
-
-  while (!lineDetected) //changed this notation
-  {                     //if no line was found, brake for set time.
-    brake(motor1, motor2);
-    blink();
-    readSensor();
-    onLine(); //Brakes motors and keeps blinking while not on the line
-  }
+  return lineDetected; // returns true if a line is detected, false otherwise
 }
 
 void readSensor()
@@ -158,17 +159,21 @@ void readSensor()
 
 void blink() //Changed blink to only blink once, but for the online function it calls blink() as long as the device isn't on a line
 {
-  pinMode(13, OUTPUT);
-
   digitalWrite(13, HIGH);
   delay(500);
   digitalWrite(13, LOW);
 }
 
-void updateTime()
+bool timeElapsed(int targetTimeInterval)
 {
-  //Make sure to always use prevTime = millis() before calling this function, or else it doesn't work
+  bool timeElapsed = false;
   deltaTime = prevTime - millis();
+  if (targetTimeInterval >= deltaTime)
+  {
+    prevTime = millis();
+    timeElapsed = true;
+  }
+  return timeElapsed;
 }
 
 void propForward(float ratio)
@@ -189,9 +194,8 @@ void straightForward()
 
 //This is all code for debugging and calibrating, for now it may not be needed
 
-/*void calibrate()
+void calibrate()
 {
-
   //collects sensor data and defines the maximum and minimum line brihtness values
 
   //delay(5000); //waits 5 seconds to start calibrating
@@ -220,8 +224,8 @@ void straightForward()
   minIR = 1.1 * tempMin;
 }
 
-  void printData()
-  {
+void printData()
+{
   // prints debug info to serial connection
   Serial.println("calibrated min and max: ");
   Serial.println(maxIR);
@@ -229,7 +233,7 @@ void straightForward()
   Serial.println();
   int readoutIndex = 0;
   while (readoutIndex < logIndex)
-{
+  {
     for (int i = 0; i < NUM_SENSORS; i++)
     {
       Serial.print(sensorLog[readoutIndex][i]);
@@ -239,8 +243,6 @@ void straightForward()
   }
 }
 
-  
-  
 // smaller version of getMax and getMin using loops
 int getMax(int tempMax)
 {
@@ -262,17 +264,15 @@ int getMin(int tempMin)
   return tempMin; //Returns tempMin to the calibrate while loop
 }
 
-
 void storeData()
 {
   //This will store sensor data, use just for debugging/information presenting
   if (logIndex < dataPoints)
   { // checks whether or not sensorLog is full.
     for (int i = 0; i < NUM_SENSORS; i++)
-{
+    {
       sensorLog[logIndex][i] = sensorDataRaw[i];
     }
     logIndex++; //increments the log index value.
+  }
 }
-}
-*/
