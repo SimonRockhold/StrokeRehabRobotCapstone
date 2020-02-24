@@ -16,8 +16,8 @@ void setMaxSpeed();
 //#define MINUTE 60000; //60,000 milliseconds per minute
 int SECOND = 1000;
 int MINUTE = 60000;
-unsigned long deltaTime; //change in time variable. used to determine elapsed time
-unsigned long prevTime;
+//unsigned long deltaTime; //change in time variable. used to determine elapsed time
+//unsigned long prevTime;
 unsigned long RUN_TIME = 1 * MINUTE; //decides how long to run our code, 60,000 is one minute, the second number multiplies that minute
 
 /////////// pin definitions
@@ -55,7 +55,7 @@ const float weightArray[] = {-OUTER_WEIGHT, -INNER_WEIGHT, CENTER_WEIGHT, INNER_
 //Initialize variables for data collection
 int logIndex = 0;
 const int dataPoints = 50;
-int sensorLog[dataPoints][NUM_SENSORS]; 
+int sensorLog[dataPoints][NUM_SENSORS];
 
 //                   initialize motor variables
 
@@ -82,3 +82,34 @@ const int offsetB = -1; //                                                     C
 
 //Not using
 //const byte DRIVE_TIME = 1; //in milliseconds
+class Timer
+{
+private:
+    void updateTime()
+    {
+        prevTime = millis();
+    }
+    long interval;
+    bool timeElapsed;
+
+public:
+    unsigned long deltaTime;
+    unsigned long prevTime;
+
+    Timer(long intervalIn)
+    {
+        interval = intervalIn;
+        prevTime = millis();
+        deltaTime = 0;
+        timeElapsed = false;
+    }
+    bool timeElapsed()
+    {
+        if (deltaTime >= interval)
+        {
+            timeElapsed = true;
+            updateTime();
+        }
+        return timeElapsed;
+    }
+};

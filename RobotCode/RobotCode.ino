@@ -6,6 +6,9 @@
 Motor motor1 = Motor(AIN1, AIN2, PWMA, offsetA, STBY); //I need to check the motor code I wrote for testing to change these. I know offset needs to be changed
 Motor motor2 = Motor(BIN1, BIN2, PWMB, offsetB, STBY);
 
+Timer calibrationTimer = Timer(CALIBRATION_TIME);
+Timer outputTimer = Timer(1000);// one second interval between outputs
+
 void setup()
 //all actions that are only done once
 {
@@ -58,7 +61,7 @@ void loop()
     blink();
   }
 
-  if (timeElapsed(SECOND)) //
+  if (outputTimer.timeElapsed()) //
   {
     //Print things for debugging
     for (int i = 0; i < NUM_SENSORS; i++)
@@ -164,17 +167,6 @@ void blink() //Changed blink to only blink once, but for the online function it 
   digitalWrite(13, LOW);
 }
 
-bool timeElapsed(int targetTimeInterval)
-{
-  bool timeElapsed = false;
-  deltaTime = prevTime - millis();
-  if (targetTimeInterval >= deltaTime)
-  {
-    prevTime = millis();
-    timeElapsed = true;
-  }
-  return timeElapsed;
-}
 
 void propForward(float ratio)
 {
@@ -204,8 +196,7 @@ void calibrate()
   int tempMax = SENSOR_MIN;
   int tempMin = SENSOR_MAX;
 
-  prevTime = millis();
-  while (deltaTime < CALIBRATION_TIME)
+  while (!calibrationTimer.timeElapsed())
   { // perform calibration for set time.
     updateTime();
 
