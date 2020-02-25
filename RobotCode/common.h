@@ -1,15 +1,11 @@
-// function declaration, included to ensure that we don't get some dumb compile time errors
-bool onLine();
-void goStraight();
-float getRatio();
-//void turning(int IRdirection);
+bool onLine();//returns whether or not the robot can detect a line
+float getRatio();//gets the turn ratio from the raw sensor data
 void storeData();
 void readSensor();
 float percentDiff();
 int getMax();
 int getMin();
 void blink();
-void updateTime();
 void setMaxSpeed();
 
 //#define SECOND 1000; //1000 milliseconds per second
@@ -30,16 +26,16 @@ const int SENSOR_MAX = 1024;
 const int SENSOR_MIN = 0;
 
 //Initialize max and min IR here, they will be the 'modified' values
-float maxIR;
-float minIR;
+int maxIR = SENSOR_MAX;
+int minIR = SENSOR_MIN;
 
 //Initialize IRdirection. This will be a value from 0-1 that determines our direction, with 0 is left, 1 is right, and 0.5 is forward
 float IRdirection;
 
 //Initialize array to store sensor values
-int sensorDataRaw[5];
+int sensorDataRaw[NUM_SENSORS];
 
-const int CALIBRATION_TIME = 30 * SECOND; // sets the calibration time to 30 seconds., not using rn
+const int CALIBRATION_TIME = 15 * SECOND; // sets the calibration time to 15 seconds., not using rn
 
 const float TURN_THRESHOLD = 0.1; // defines the threshold the deviation must reach before turning.
 //float tempPercentDiff;            //placeholder for the percent difference
@@ -60,7 +56,7 @@ int sensorLog[dataPoints][NUM_SENSORS];
 //                   initialize motor variables
 
 const int DRIVE_TIME = 10; //Defines how long (in milliseconds) motors drive in forward functions. Keep this very low to reduce wagging
-const byte MAX_SPEED = 150;
+const byte SPEED = 100;
 
 // these constants are used to allow you to make your motor configuration
 // line up with function names like forward.  Value can be 1 or -1
@@ -90,7 +86,7 @@ private:
         prevTime = millis();
     }
     long interval;
-    bool timeElapsed;
+    bool timeElapsedFlag;
 
 public:
     unsigned long deltaTime;
@@ -101,15 +97,16 @@ public:
         interval = intervalIn;
         prevTime = millis();
         deltaTime = 0;
-        timeElapsed = false;
+        timeElapsedFlag = false;
     }
     bool timeElapsed()
     {
+        deltaTime = millis() - prevTime;
         if (deltaTime >= interval)
         {
-            timeElapsed = true;
+            timeElapsedFlag = true;
             updateTime();
         }
-        return timeElapsed;
+        return timeElapsedFlag;
     }
 };

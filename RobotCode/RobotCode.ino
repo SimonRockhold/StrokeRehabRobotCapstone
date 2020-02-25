@@ -7,73 +7,26 @@ Motor motor1 = Motor(AIN1, AIN2, PWMA, offsetA, STBY); //I need to check the mot
 Motor motor2 = Motor(BIN1, BIN2, PWMB, offsetB, STBY);
 
 Timer calibrationTimer = Timer(CALIBRATION_TIME);
-Timer outputTimer = Timer(1000);// one second interval between outputs
+Timer outputTimer = Timer(1000); // one second interval between outputs
 
 void setup()
 //all actions that are only done once
 {
   Serial.begin(9600);
-  pinMode(13, OUTPUT);         //only needed once so done in setup()
-  Serial.println("Connected"); //quick check to make sure device is communicating
-
-  //Call calibrate function in setup, We'll work on that code shortly
-  //calibrate();
-
-  //Wait 5 seconds before driving
-  delay(5 * SECOND);
+  pinMode(13, OUTPUT);            //only needed once so done in setup()
+  Serial.println(F("Connected")); //quick check to make sure device is communicating
+  calibrate();
+  delay(500);
 }
 
 //////////////////////// loop
 
 void loop()
 {
-
-  readSensor();             //Collects data from sensors and stores in an array
-  IRdirection = getRatio(); //Gets ratio from 0 to 1, going to try and move this higher up to see if maybe it helps?
-
-  if (!onLine()) //if the robot is not on the line. brake, and blink. It will repeat when loop repeats
-  {
-    brake(motor1, motor2);
-    blink();
-    //readSensor();
-    //onLine();
-  }
-
-  //delay(500); //Adding this to be able to read/print percent diff values and see if it's a processing speed issue
-
-  if (percentDiff() <= TURN_THRESHOLD)
-  { //This function will check to see if there is a significant difference between the left and right sensors, if there is, it will move on to turning prompts, if not it will just drive straight
-
-    forward(motor1, motor2, (MAX_SPEED * 0.6));
-    straightForward();
-  }
-  else
-  {
-    propForward(IRdirection); //Changes made in the motor library
-  }
-  //This will store sensor data in a large array, not using rn
-  //storeData();
-
-  //This will allow it to follow a line for a predetermined amount of time
-  if (millis() >= RUN_TIME)
-  {
-    brake(motor1, motor2);
-    blink();
-  }
-
-  if (outputTimer.timeElapsed()) //
-  {
-    //Print things for debugging
-    for (int i = 0; i < NUM_SENSORS; i++)
-    {
-      Serial.print(sensorDataRaw[i]);
-      Serial.print(", ");
-    }
-
-    Serial.print("ratio: ");
-    Serial.print(IRdirection);
-    Serial.println(" ");
-  }
+  //Serial.print("loop");
+  readSensor(); //Collects data from sensors and stores in an array
+  IRdirection = getRatio();
+  propForward(motor1, motor2, IRdirection);
 }
 
 float percentDiff()
@@ -85,10 +38,12 @@ float percentDiff()
 }
 
 //This should be a better way to find a turning value
-float getRatio() //used to be convertIR(), renamed for clarity
+
+float getRatio()
 {
-  float outputArr[NUM_SENSORS]; //Create temporary array to store values
-  float sum = 0;                //Initialize sum variable
+  //Serial.print(F("getRatio"));
+  int outputArr[NUM_SENSORS]; //Create temporary array to store values
+  int sum = 0;                //Initialize sum variable
 
   for (int i = 0; i < NUM_SENSORS; i++)
   {
@@ -120,7 +75,7 @@ float getRatio() //used to be convertIR(), renamed for clarity
   //May want to try and remove this
   sum = constrain(sum, (-OUTER_WEIGHT * maxIR), (OUTER_WEIGHT * maxIR));
 
-  //maps to range 0 to 1000
+  //maps to 0 to 1, try and mess with this
   float temp = map(sum, (-OUTER_WEIGHT * maxIR), (OUTER_WEIGHT * maxIR), 0, 1000.00); //Values were in wrong order, they've been rearranged
 
   //Printing for debugging
@@ -132,7 +87,7 @@ float getRatio() //used to be convertIR(), renamed for clarity
 
   Serial.println(" ");
 
-  return (temp / 1000.00); //returns value from 0 to 1 with precsion of 5 decimal points. Likely more than needed.
+  return (temp / 1000.00);
 }
 
 //returns whether or not a line is detected.
@@ -167,19 +122,14 @@ void blink() //Changed blink to only blink once, but for the online function it 
   digitalWrite(13, LOW);
 }
 
-
-void propForward(float ratio)
+void propForward(Motor motor1, Motor motor2, float ratio)
 {
-  motor1.drive(((MAX_SPEED * ratio)), DRIVE_TIME);
-  motor2.drive((MAX_SPEED * (1 - ratio)), DRIVE_TIME);
+  int speed1 = SPEED * ratio;
+  int speed2 = SPEED * (1 - ratio);
+  motor1.drive(speed1);
+  motor2.drive(speed2);
 }
 
-//Try this in order to resolve issues around the normal forward() method being blocking
-void straightForward()
-{
-  motor1.drive((MAX_SPEED * 0.6), DRIVE_TIME);
-  motor2.drive((MAX_SPEED * 0.6), DRIVE_TIME);
-}
 
 //It would be nice to eventually include a calibrate function, however for now we can simply hard code the IR max and min values based on
 //results we get from our IR sensor only test code
@@ -190,23 +140,22 @@ void calibrate()
 {
   //collects sensor data and defines the maximum and minimum line brihtness values
 
-  //delay(5000); //waits 5 seconds to start calibrating
-
   //initialize temporary max and min, set max equal to real min, min equal to real max
   int tempMax = SENSOR_MIN;
   int tempMin = SENSOR_MAX;
-
+  Serial.println("calibrating...");
   while (!calibrationTimer.timeElapsed())
   { // perform calibration for set time.
-    updateTime();
-
     readSensor(); //populate sensor data array
 
     //find max and min over x minutes
     tempMax = getMax(tempMax);
     tempMin = getMin(tempMin);
   }
-
+  Serial.println("calibration complete");
+  Serial.println(tempMax);
+  Serial.println(tempMin);
+  
   //Now that we have the absolute max and min the sensors found, we can modify those to find an operational range. This will hopefully account for outliers
   //Modifiers can be increase or decreased as needed
   //Honestly, we might want to completely remove modifiers, as there's a chance in the IRdirection function it'll create negatives where we don't want them

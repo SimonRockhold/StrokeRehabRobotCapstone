@@ -1,0 +1,50 @@
+#include "commonTest.h"
+#include <SparkFun_TB6612.h>
+
+void propForward(Motor motor1, Motor motor2, float ratio);
+
+
+Motor motor1 = Motor(AIN1, AIN2, PWMA, offsetA, STBY); //I need to check the motor code I wrote for testing to change these. I know offset needs to be changed
+Motor motor2 = Motor(BIN1, BIN2, PWMB, offsetB, STBY);
+
+void setup()
+{
+    Serial.begin(9600);
+    Serial.println("connected");
+}
+
+void loop()
+{
+    Serial.print("test test");
+    propForward(motor1, motor2, 0.25);
+}
+
+void propForward(Motor motor1, Motor motor2, float ratio)
+{
+    int speed1 = DEFAULT_SPEED * ratio;
+    int speed2 = DEFAULT_SPEED * (1 - ratio);
+    Serial.println("speed1, speed2");
+    Serial.println(speed1);
+    Serial.println(speed2);
+    motor1.drive(speed1);
+    motor2.drive(speed2);
+}
+
+void readSensor()
+{
+  //Serial.println("readSensor()");
+  for (int x = 0; x < NUM_SENSORS; x++)
+  {
+    //Serial.println(analogRead(IRSensor[x]));
+    sensorDataRaw[x] = analogRead(IRSensor[x]);
+  }
+}
+
+void getRatio(){
+    int sum = 0;
+    for(int i = 0; i < NUM_SENSORS; i++){
+        sum += sensorDataRaw[i];
+    }
+  float temp = map(sum, (-OUTER_WEIGHT * maxIR), (OUTER_WEIGHT * maxIR), 0, 1000.00); //Values were in wrong order, they've been rearranged
+    return 
+}
