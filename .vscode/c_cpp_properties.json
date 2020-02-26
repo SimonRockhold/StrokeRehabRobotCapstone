@@ -3,7 +3,7 @@
         {
             "name": "Win32",
             "includePath": [
-                "C:\\Users\\${env:USERNAME}\\OneDrive\\Documents\\Arduino\\libraries\\SparkFun_TB6612FNG_Arduino_Library-master\\src",
+                "D:\\Program Files (x86)\\Arduino\\libraries\\SparkFun_TB6612FNG_Arduino_Library-master\\src",
                 "C:\\Program Files (x86)\\Arduino\\tools\\**",
                 "C:\\Program Files (x86)\\Arduino\\hardware\\arduino\\avr\\**",
                 "C:\\Program Files (x86)\\Arduino\\libraries\\**",
