@@ -1,13 +1,16 @@
 #include "commonTest.h"
 Timer testTimer = Timer(1000);
 
-void setup()
+void TimerMain()
 {
     Timer testTimer = Timer(10000);
     Serial.begin(9600);
+    while(true){
+        timerTest();
+    }
 }
 
-void loop()
+void timerTest()
 {
     if (testTimer.timeElapsed())
     {
