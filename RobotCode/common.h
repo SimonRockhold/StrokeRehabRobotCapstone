@@ -1,20 +1,10 @@
-bool onLine();//returns whether or not the robot can detect a line
-float getRatio();//gets the turn ratio from the raw sensor data
-void storeData();
-void readSensor();
-float percentDiff();
-int getMax();
-int getMin();
-void blink();
-void setMaxSpeed();
+#pragma once
+namespace defs {
 
-//#define SECOND 1000; //1000 milliseconds per second
-//#define MINUTE 60000; //60,000 milliseconds per minute
-int SECOND = 1000;
-int MINUTE = 60000;
-//unsigned long deltaTime; //change in time variable. used to determine elapsed time
-//unsigned long prevTime;
-unsigned long RUN_TIME = 1 * MINUTE; //decides how long to run our code, 60,000 is one minute, the second number multiplies that minute
+#define SECOND 1000 //1000 milliseconds per second
+#define MINUTE 60000 //60,000 milliseconds per minute
+
+const unsigned long RUN_TIME = 1 * MINUTE; //decides how long to run our code, 60,000 is one minute, the second number multiplies that minute
 
 /////////// pin definitions
 const int IRSensor[] = {A2, A1, A0, A7, A6}; //Pins reflect current wiring (2/18/2020)
@@ -25,9 +15,6 @@ const int NUM_SENSORS = 5;
 const int SENSOR_MAX = 1024;
 const int SENSOR_MIN = 0;
 
-//Initialize max and min IR here, they will be the 'modified' values
-int maxIR = SENSOR_MAX;
-int minIR = SENSOR_MIN;
 
 //Initialize IRdirection. This will be a value from 0-1 that determines our direction, with 0 is left, 1 is right, and 0.5 is forward
 float IRdirection;
@@ -48,15 +35,13 @@ const float CENTER_WEIGHT = 1; //Dont know if we'll need the center weight, I th
 // stores the scale factors used in weighted turning.
 const float weightArray[] = {-OUTER_WEIGHT, -INNER_WEIGHT, CENTER_WEIGHT, INNER_WEIGHT, OUTER_WEIGHT};
 
-//Initialize variables for data collection
-int logIndex = 0;
+//number of data points to be collected. Will be made redundant with file datalogging
 const int dataPoints = 50;
-int sensorLog[dataPoints][NUM_SENSORS];
 
 //                   initialize motor variables
 
 const int DRIVE_TIME = 10; //Defines how long (in milliseconds) motors drive in forward functions. Keep this very low to reduce wagging
-const byte SPEED = 100;
+const int SPEED = 100;
 
 // these constants are used to allow you to make your motor configuration
 // line up with function names like forward.  Value can be 1 or -1
@@ -78,35 +63,5 @@ const int offsetB = -1; //                                                     C
 
 //Not using
 //const byte DRIVE_TIME = 1; //in milliseconds
-class Timer
-{
-private:
-    void updateTime()
-    {
-        prevTime = millis();
-    }
-    long interval;
-    bool timeElapsedFlag;
 
-public:
-    unsigned long deltaTime;
-    unsigned long prevTime;
-
-    Timer(long intervalIn)
-    {
-        interval = intervalIn;
-        prevTime = millis();
-        deltaTime = 0;
-        timeElapsedFlag = false;
-    }
-    bool timeElapsed()
-    {
-        deltaTime = millis() - prevTime;
-        if (deltaTime >= interval)
-        {
-            timeElapsedFlag = true;
-            updateTime();
-        }
-        return timeElapsedFlag;
-    }
-};
+}//end of namespace defs
