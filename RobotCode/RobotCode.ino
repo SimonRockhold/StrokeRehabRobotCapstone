@@ -1,3 +1,6 @@
+//This is my change that i made as a test
+
+
 //Download library here https://learn.sparkfun.com/tutorials/tb6612fng-hookup-guide#library-and-example-code, manually import by copying library to User\Documents\Arduino\libraries
 #include <SparkFun_TB6612.h>
 #include "common.h"
