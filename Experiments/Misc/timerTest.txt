@@ -1,0 +1,23 @@
+#include "commonTest.h"
+Timer testTimer = Timer(1000);
+
+void TimerMain()
+{
+    Timer testTimer = Timer(10000);
+    Serial.begin(9600);
+    while(true){
+        timerTest();
+    }
+}
+
+void timerTest()
+{
+    if (testTimer.timeElapsed())
+    {
+        Serial.println("done");
+    }
+    else
+    {
+        Serial.print(testTimer.deltaTime);
+    }
+}
