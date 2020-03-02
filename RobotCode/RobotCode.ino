@@ -2,6 +2,8 @@
 #include <SparkFun_TB6612.h>
 #include "common.h"
 #include "Timer.h"
+#include <SD.h>
+#include <SPI.h>
 
 using namespace defs; //inlcudes all definitions made in common.h
 
@@ -24,9 +26,26 @@ void setup()
   pinMode(13, OUTPUT); //only needed once so done in setup()
   Serial.begin(9600);
   Serial.println(F("Connected")); //quick check to make sure device is communicating
-  //calibrate();
 
-  delay(5000);
+  startup();
+  //calibrate();
+}
+
+void startup()
+//
+{
+  welcomeMessage(); //will display a welcome message
+  pinMode(button, INPUT);
+  Timer calibrateInputTimer = Timer(3000); //sets the calibration timer
+  if (digitalRead(button))
+  {
+    calibrate();
+  }
+  else
+  {
+    Serial.println("reading calibration from file...");
+    calibrationFromFile();
+  }
 }
 
 //////////////////////// loop
@@ -121,8 +140,6 @@ void propForward(float ratio)
 //It would be nice to eventually include a calibrate function, however for now we can simply hard code the IR max and min values based on
 //results we get from our IR sensor only test code
 
-//This is all code for debugging and calibrating, for now it may not be needed
-
 void calibrate()
 {
   //collects sensor data and defines the maximum and minimum line brihtness values
@@ -170,6 +187,11 @@ void printData()
   }
 }
 
+void logToSD()
+//writes the current state of the sensor array to a file called "SensorLog.txt" one line at a time;
+{
+}
+
 // smaller version of getMax and getMin using loops
 int getMax(int tempMax)
 {
@@ -201,5 +223,48 @@ void storeData()
       sensorLog[logIndex][i] = sensorDataRaw[i];
     }
     logIndex++; //increments the log index value.
+  }
+}
+
+void welcomeMessage()
+//displays a welcome message
+{
+}
+
+void calibrationFromFile()
+//sets the calibration values from the previous values stored on SD in "calibration.txt"
+{
+  if (!SD.begin(SD_CS))
+  {
+    Serial.println("SD card initialization failed.");
+  }
+  File calibration;
+  if (SD.exists("calibration.txt"))
+  {
+    Serial.println("calibration file found.");
+    calibration = SD.open("calibration.txt", FILE_READ);
+  }
+  else
+  {
+    Serial.println("calibration file not found.");
+  }
+
+  if (calibration)
+  {
+    while (calibration.available())
+    {
+      //Serial.write(calibration.read());
+      maxIR = calibration.read();
+      minIR = calibration.read();
+      Serial.println(maxIR);
+      Serial.println(minIR);
+    }
+    calibration.close(); //testFile.println("test test, one two three");
+  }
+  else
+  {
+    Serial.println("read failed.");
+    while (true)
+      ;
   }
 }
