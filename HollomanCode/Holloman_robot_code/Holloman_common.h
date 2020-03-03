@@ -31,6 +31,6 @@ int r = 60;
 
 void displayEyes();
 void closeEyes();
+void chord();
 //void makeNoise();
 //void blink();
-

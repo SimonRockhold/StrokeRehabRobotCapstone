@@ -87,7 +87,7 @@ void closeEyes() {
 
     display.display();
 
-    delay(2000);
+    //delay(2000);
 
     
 }
