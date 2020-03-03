@@ -91,3 +91,7 @@ void closeEyes() {
 
     
 }
+
+void makeNoise() {
+    
+}
