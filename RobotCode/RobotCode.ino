@@ -17,8 +17,8 @@ Timer calibrationTimer = Timer(CALIBRATION_TIME);
 Timer outputTimer = Timer(SECOND); // one second interval between outputs
 int logIndex = 0;                  // used by calibrate method
 int sensorLog[dataPoints][NUM_SENSORS];
-int maxIR = SENSOR_MAX;
-int minIR = SENSOR_MIN;
+int maxIR = 500;
+int minIR = 190;
 } //end namespace init
 
 void setup()
@@ -27,7 +27,9 @@ void setup()
   pinMode(13, OUTPUT); //only needed once so done in setup()
   Serial.begin(9600);
   Serial.println(F("Connected")); //quick check to make sure device is communicating
-  calibrate();
+  //calibrate();
+
+  delay(5000);
 }
 
 //////////////////////// loop

@@ -29,8 +29,8 @@ const float TURN_THRESHOLD = 0.1; // defines the threshold the deviation must re
 
 //These are the multipliers were using to assign weight to inner and outer sensors
 const int INNER_WEIGHT = 2;
-const int OUTER_WEIGHT = 3;
-const float CENTER_WEIGHT = 1; //Dont know if we'll need the center weight, I think I found a workaround
+const int OUTER_WEIGHT = 2.5;
+const float CENTER_WEIGHT = 0.2; //Dont know if we'll need the center weight, I think I found a workaround
 
 // stores the scale factors used in weighted turning.
 const float weightArray[] = {-OUTER_WEIGHT, -INNER_WEIGHT, CENTER_WEIGHT, INNER_WEIGHT, OUTER_WEIGHT};
@@ -41,7 +41,7 @@ const int dataPoints = 50;
 //                   initialize motor variables
 
 const int DRIVE_TIME = 10; //Defines how long (in milliseconds) motors drive in forward functions. Keep this very low to reduce wagging
-const int SPEED = 100;
+const int SPEED = 125;
 
 // these constants are used to allow you to make your motor configuration
 // line up with function names like forward.  Value can be 1 or -1

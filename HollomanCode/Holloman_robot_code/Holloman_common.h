@@ -1,17 +1,17 @@
 // Color definitions
-#define BLACK    0x0000
-#define BLUE     0x001F
-#define RED      0xF800
-#define GREEN    0x07E0
-#define CYAN     0x07FF
-#define MAGENTA  0xF81F
-#define YELLOW   0xFFE0 
-#define WHITE    0xFFFF
+// #define BLACK    0x0000
+// #define BLUE     0x001F
+// #define RED      0xF800
+// #define GREEN    0x07E0
+// #define CYAN     0x07FF
+// #define MAGENTA  0xF81F
+// #define YELLOW   0xFFE0 
+// #define WHITE    0xFFFF
 
 // define pins
 int buttonPin = 3;
 int buzzerPin = 2;
-int ledPin = 7; //Just a placeholder for now, change upon wiring
+int ledPin = 13; //Just a placeholder for now, change upon wiring
 
 bool eyesOn = false;
 //bool buttonPress = false;
