@@ -2,6 +2,7 @@
 #include <SparkFun_TB6612.h>
 #include "common.h"
 #include "Timer.h"
+#include "Log.h"
 #include <SD.h>
 #include <SPI.h>
 
@@ -13,8 +14,14 @@ Motor motor1 = Motor(AIN1, AIN2, PWMA, offsetA, STBY); //I need to check the mot
 Motor motor2 = Motor(BIN1, BIN2, PWMB, offsetB, STBY);
 
 Timer calibrationTimer = Timer(CALIBRATION_TIME);
-Timer outputTimer = Timer(SECOND); // one second interval between outputs
-int logIndex = 0;                  // used by calibrate method
+Timer outputTimer = Timer(SECOND);   // one second interval between outputs
+Timer logTimer = Timer(SECOND * 30); // set a 30 second timer to log all values during that time.
+
+Log sensorLog = Log(SD_CS, "sensorLog.csv");
+
+File logFile = sensorLog.getLogFile();
+
+int logIndex = 0;
 int sensorLog[dataPoints][NUM_SENSORS];
 int maxIR = 775;
 int minIR = 230;
@@ -35,16 +42,21 @@ void startup()
 //
 {
   welcomeMessage(); //will display a welcome message
-  pinMode(button, INPUT);
-  Timer calibrateInputTimer = Timer(3000); //sets the calibration timer
-  if (digitalRead(button))
+  pinMode(BUTTON, INPUT);
+  Timer calibrateStartupTimer = Timer(5 * SECOND);
+  //wait for 5 seconds at startup. If button is pressed, recalibrate. otherwise, load from file.
+  while (!calibrateStartupTimer.timeElapsed())
   {
-    calibrate();
-  }
-  else
-  {
-    Serial.println("reading calibration from file...");
-    calibrationFromFile();
+    if (digitalRead(BUTTON))
+    {
+      calibrate();
+      break;
+    }
+    else
+    {
+      Serial.println("reading calibration from file...");
+      calibrationFromFile();
+    }
   }
 }
 
@@ -54,8 +66,12 @@ void loop()
 {
   //Serial.print("loop");
   readSensor(); //Collects data from sensors and stores in an array
+
   IRdirection = getRatio();
   propForward(IRdirection);
+  if (!logTimer.timeElapsed())
+  {
+  }
 }
 
 //This should be a better way to find a turning value
@@ -113,10 +129,8 @@ float getRatio()
 
 void readSensor()
 {
-  //Serial.println("readSensor()");
   for (int x = 0; x < NUM_SENSORS; x++)
   {
-    //Serial.println(analogRead(IRSensor[x]));
     sensorDataRaw[x] = analogRead(IRSensor[x]);
   }
 }
@@ -137,17 +151,15 @@ void propForward(float ratio)
   motor2.drive(speed2);
 }
 
-//It would be nice to eventually include a calibrate function, however for now we can simply hard code the IR max and min values based on
-//results we get from our IR sensor only test code
-
 void calibrate()
 {
-  //collects sensor data and defines the maximum and minimum line brihtness values
+  //collects sensor data and defines the maximum and minimum line brightness values
 
   //initialize temporary max and min, set max equal to real min, min equal to real max
   int tempMax = SENSOR_MIN;
   int tempMin = SENSOR_MAX;
   Serial.println("calibrating...");
+  //writeToScreen("calibrating..."); //so far unimplemented, to replace printing information to serial
   while (!calibrationTimer.timeElapsed())
   {               // perform calibration for set time.
     readSensor(); //populate sensor data array
@@ -190,6 +202,27 @@ void printData()
 void logToSD()
 //writes the current state of the sensor array to a file called "SensorLog.txt" one line at a time;
 {
+
+  if (logFile)
+  {
+    while (logFile.available())
+    {
+      for (int i = 0; i <)
+      {
+        for (int j = 0; j < NUM_SENSORS; j++)
+        {
+          logFile.print("");
+        }
+      }
+    }
+    logFile.close();
+  }
+  else
+  {
+    Serial.println("Fatal error: card read failed. reset device.");
+    while (true)
+      ;
+  }
 }
 
 // smaller version of getMax and getMin using loops
@@ -259,7 +292,7 @@ void calibrationFromFile()
       Serial.println(maxIR);
       Serial.println(minIR);
     }
-    calibration.close(); //testFile.println("test test, one two three");
+    calibration.close();
   }
   else
   {

@@ -54,7 +54,7 @@ const int offsetB = -1; //                                                     C
 //Optional
 #define STBY 6 //we may need to use this pin for ultrasonic range finder
 
-#define button 2 //used for interface
+#define BUTTON 2 //used for interface
 
 //pins used for SD cards communication
 #define SD_CS 10 //SD card select pin, may be able to use this pin for other tasks when not using SD card
