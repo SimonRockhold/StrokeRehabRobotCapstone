@@ -15,10 +15,6 @@ const int NUM_SENSORS = 5;
 const int SENSOR_MAX = 1024;
 const int SENSOR_MIN = 0;
 
-
-//Initialize IRdirection. This will be a value from 0-1 that determines our direction, with 0 is left, 1 is right, and 0.5 is forward
-float IRdirection;
-
 //Initialize array to store sensor values
 int sensorDataRaw[NUM_SENSORS];
 
