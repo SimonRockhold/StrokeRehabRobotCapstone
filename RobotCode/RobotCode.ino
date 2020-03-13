@@ -1,6 +1,3 @@
-//This is my change that i made as a test
-
-
 //Download library here https://learn.sparkfun.com/tutorials/tb6612fng-hookup-guide#library-and-example-code, manually import by copying library to User\Documents\Arduino\libraries
 #include <SparkFun_TB6612.h>
 #include "common.h"
@@ -19,6 +16,11 @@ int logIndex = 0;                  // used by calibrate method
 int sensorLog[dataPoints][NUM_SENSORS];
 int maxIR = 775;
 int minIR = 230;
+float Kp = 10;
+float Kd = 0.1;
+float Ki = 10;
+float P, I, D;
+float direction;
 } //end namespace init
 
 void setup()
@@ -38,8 +40,8 @@ void loop()
 {
   //Serial.print("loop");
   readSensor(); //Collects data from sensors and stores in an array
-  IRdirection = getRatio();
-  propForward(IRdirection);
+  direction = calculatePID();
+  propForward(direction);
 }
 
 float percentDiff()
@@ -88,18 +90,18 @@ float getRatio()
   sum = constrain(sum, (-OUTER_WEIGHT * maxIR), (OUTER_WEIGHT * maxIR));
 
   //maps to 0 to 1, try and mess with this
-  float temp = map(sum, (-OUTER_WEIGHT * maxIR), (OUTER_WEIGHT * maxIR), 0, 1000.00); //Values were in wrong order, they've been rearranged
-
-  //Printing for debugging
-  Serial.print("Sum: ");
-  Serial.print(sum);
-
-  Serial.print(" ratio: ");
-  Serial.print(temp / 1000.00);
-
-  Serial.println(" ");
-
+  float temp = map(sum, (-OUTER_WEIGHT * maxIR), (OUTER_WEIGHT * maxIR), 0, 1000.00);
   return (temp / 1000.00);
+}
+
+float calculatePID()
+{
+  float error = getRatio() - 0.5;
+  float previousError = error;
+  P = error;
+  I = I + error;
+  D = error - previousError;
+  return (Kp * P) + (Ki * I) + (Kd * D);
 }
 
 //returns whether or not a line is detected.
