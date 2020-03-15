@@ -16,7 +16,7 @@ int logIndex = 0;                  // used by calibrate method
 int sensorLog[dataPoints][NUM_SENSORS];
 int maxIR = 775;
 int minIR = 230;
-float Kp = 200;
+float Kp = 300;
 float Kd = 200;
 float Ki = 0;
 float P, I, D;
