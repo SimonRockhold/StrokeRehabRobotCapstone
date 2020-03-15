@@ -7,8 +7,8 @@ using namespace defs; //inlcudes all definitions made in common.h
 
 namespace //limits the scope of decalations inside namespace to this file.
 {
-Motor motor1 = Motor(AIN1, AIN2, PWMA, offsetA, STBY); //I need to check the motor code I wrote for testing to change these. I know offset needs to be changed
-Motor motor2 = Motor(BIN1, BIN2, PWMB, offsetB, STBY);
+Motor leftMotor = Motor(AIN1, AIN2, PWMA, offsetA, STBY); //I need to check the motor code I wrote for testing to change these. I know offset needs to be changed
+Motor rightMotor = Motor(BIN1, BIN2, PWMB, offsetB, STBY);
 
 Timer calibrationTimer = Timer(CALIBRATION_TIME);
 Timer outputTimer = Timer(SECOND); // one second interval between outputs
@@ -16,9 +16,9 @@ int logIndex = 0;                  // used by calibrate method
 int sensorLog[dataPoints][NUM_SENSORS];
 int maxIR = 775;
 int minIR = 230;
-float Kp = 10;
-float Kd = 0.1;
-float Ki = 10;
+float Kp = 200;
+float Kd = 200;
+float Ki = 0;
 float P, I, D;
 float direction;
 } //end namespace init
@@ -139,12 +139,13 @@ void blink() //Changed blink to only blink once, but for the online function it 
   digitalWrite(13, LOW);
 }
 
-void propForward(float ratio)
+void propForward(float PIDval)
 {
-  int speed1 = SPEED * ratio;
-  int speed2 = SPEED * (1 - ratio);
-  motor1.drive(speed1);
-  motor2.drive(speed2);
+  //slight change, we're adding the PID value, not multiplying anymore
+  int speed1 = SPEED + PIDval;
+  int speed2 = SPEED - PIDval;
+  leftMotor.drive(speed1);
+  rightMotor.drive(speed2);
 }
 
 //It would be nice to eventually include a calibrate function, however for now we can simply hard code the IR max and min values based on
