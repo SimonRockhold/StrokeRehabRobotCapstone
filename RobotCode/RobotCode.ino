@@ -14,8 +14,8 @@ Timer calibrationTimer = Timer(CALIBRATION_TIME);
 Timer outputTimer = Timer(SECOND); // one second interval between outputs
 int logIndex = 0;                  // used by calibrate method
 int sensorLog[dataPoints][NUM_SENSORS];
-int maxIR = 775;
-int minIR = 230;
+int maxIR = 850;
+int minIR = 190;
 float Kp = 300;
 float Kd = 200;
 float Ki = 0;
