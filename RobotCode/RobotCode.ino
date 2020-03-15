@@ -96,8 +96,11 @@ float getRatio()
 
 float calculatePID()
 {
-  float error = getRatio() - 0.5;
-  float previousError = error;
+  //We want to redefine previousError first, or else previousError and error will always be the same
+  previousError = error;
+  //error was changed. Not sure if the order matters, but i read that error = desiredPoint - actualPoint
+  error = 0.5 - getRatio();
+ 
   P = error;
   I = I + error;
   D = error - previousError;

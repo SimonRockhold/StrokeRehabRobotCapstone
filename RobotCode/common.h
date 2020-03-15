@@ -57,7 +57,8 @@ const int offsetB = -1; //                                                     C
 //Optional
 #define STBY 6
 
-//Not using
-//const byte DRIVE_TIME = 1; //in milliseconds
+// PID control variables
+float error;
+float previousError;
 
 }//end of namespace defs
