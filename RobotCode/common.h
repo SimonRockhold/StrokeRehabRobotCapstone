@@ -51,7 +51,7 @@ const int offsetB = -1; //                                                     C
 // Pins for all inputs, keep in mind the PWM defines must be on PWM pins,
 // CHANGE THESE UPON WIRING
 
-//Digital
+//Digital pin definitions
 #define AIN1 7
 #define BIN1 5
 #define AIN2 8
@@ -60,8 +60,5 @@ const int offsetB = -1; //                                                     C
 #define PWMB 3
 //Optional
 #define STBY 6
-
-//Not using
-//const byte DRIVE_TIME = 1; //in milliseconds
 
 }//end of namespace defs

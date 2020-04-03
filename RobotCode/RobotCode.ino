@@ -39,13 +39,6 @@ void loop()
   propForward(IRdirection);
 }
 
-float percentDiff()
-{
-  //This will determine percent difference between outer sensors, and return that difference to the conditional in  the loop
-
-  return ((abs((sensorDataRaw[0] + sensorDataRaw[1]) - (sensorDataRaw[3] + sensorDataRaw[4]))) / ((sensorDataRaw[0] + sensorDataRaw[1] + sensorDataRaw[3] + sensorDataRaw[4]) / 2));
-}
-
 //This should be a better way to find a turning value
 
 float getRatio()
@@ -99,21 +92,6 @@ float getRatio()
   return (temp / 1000.00);
 }
 
-//returns whether or not a line is detected.
-bool onLine()
-{
-  bool lineDetected = false;
-  for (int i = 0; i < NUM_SENSORS; i++)
-  {
-    if (sensorDataRaw[i] >= (minIR * 1.3)) //May want to change the 1.3
-    {                                      //checks each sensor to see if a line is detected
-      lineDetected = true;                 //if line is found, set lineDetected flag to true
-      break;                               // leave the loop, no reason to check other sensors.
-    }
-  }
-  return lineDetected; // returns true if a line is detected, false otherwise
-}
-
 void readSensor()
 {
   //Serial.println("readSensor()");
@@ -124,7 +102,8 @@ void readSensor()
   }
 }
 
-void blink() //Changed blink to only blink once, but for the online function it calls blink() as long as the device isn't on a line
+void blink()
+//Changed blink to only blink once, but for the online function it calls blink() as long as the device isn't on a line
 {
   digitalWrite(13, HIGH);
   delay(500);
