@@ -16,12 +16,15 @@ int logIndex = 0;                  // used by calibrate method
 int sensorLog[dataPoints][NUM_SENSORS];
 int maxIR = 850;
 int minIR = 190;
-float Kp = 300;
-float Kd = 200;
+float Kp; //This will change using the potentiometer during testing
+float Kd; //This will change using the potentiometer during testing
 float Ki = 0;
 float P, I, D;
 float direction;
 } //end namespace init
+
+//For testing purposes
+float desiredCoefficient;
 
 void setup()
 //all actions that are only done once
@@ -38,7 +41,10 @@ void setup()
 
 void loop()
 {
-  //Serial.print("loop");
+  //For testing PID values, set testing for Kp or Kd by changing values here
+  Kp = getCoefficient();
+  Serial.println(Kp); //Can't print while device is running, since potentiometer saves physical location the correct Kp should print whenr recconnected
+
   readSensor(); //Collects data from sensors and stores in an array
   direction = calculatePID();
   propForward(direction);
@@ -232,4 +238,15 @@ void storeData()
     }
     logIndex++; //increments the log index value.
   }
+}
+
+/*
+Purely for testing purposes, makes it so you can adjust Kp and Kd using a potentiometer
+*/
+float getCoefficient() {
+
+  int voltage = analogRead(A3);
+  desiredCoefficient = map(voltage, 0, 1023, 0, 500); //Change range of Kp/Kd values here (Syntax: map(value, fromLow, fromHigh, toLow, toHigh))
+  
+  return desiredCoefficient;
 }
