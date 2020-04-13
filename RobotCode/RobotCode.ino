@@ -16,15 +16,19 @@ int logIndex = 0;                  // used by calibrate method
 int sensorLog[dataPoints][NUM_SENSORS];
 int maxIR = 850;
 int minIR = 190;
-float Kp; //This will change using the potentiometer during testing
+float Kp = -1; //This will change using the potentiometer during testing
 float Kd; //This will change using the potentiometer during testing
 float Ki = 0;
 float P, I, D;
 float direction;
+
+float voltage;
+float error;
+float previousError;
+float desiredCoefficient; //For testing
 } //end namespace init
 
-//For testing purposes
-float desiredCoefficient;
+
 
 void setup()
 //all actions that are only done once
@@ -43,18 +47,11 @@ void loop()
 {
   //For testing PID values, set testing for Kp or Kd by changing values here
   Kp = getCoefficient();
-  Serial.println(Kp); //Can't print while device is running, since potentiometer saves physical location the correct Kp should print whenr recconnected
+  //Serial.println(Kp); //Can't print while device is running, since potentiometer saves physical location the correct Kp should print whenr recconnected
 
   readSensor(); //Collects data from sensors and stores in an array
   direction = calculatePID();
   propForward(direction);
-}
-
-float percentDiff()
-{
-  //This will determine percent difference between outer sensors, and return that difference to the conditional in  the loop
-
-  return ((abs((sensorDataRaw[0] + sensorDataRaw[1]) - (sensorDataRaw[3] + sensorDataRaw[4]))) / ((sensorDataRaw[0] + sensorDataRaw[1] + sensorDataRaw[3] + sensorDataRaw[4]) / 2));
 }
 
 //This should be a better way to find a turning value
@@ -110,22 +107,9 @@ float calculatePID()
   P = error;
   I = I + error;
   D = error - previousError;
-  return (Kp * P) + (Ki * I) + (Kd * D);
-}
+  Serial.println(Kp); //Can't print while device is running, since potentiometer saves physical location the correct Kp should print whenr recconnected
 
-//returns whether or not a line is detected.
-bool onLine()
-{
-  bool lineDetected = false;
-  for (int i = 0; i < NUM_SENSORS; i++)
-  {
-    if (sensorDataRaw[i] >= (minIR * 1.3)) //May want to change the 1.3
-    {                                      //checks each sensor to see if a line is detected
-      lineDetected = true;                 //if line is found, set lineDetected flag to true
-      break;                               // leave the loop, no reason to check other sensors.
-    }
-  }
-  return lineDetected; // returns true if a line is detected, false otherwise
+  return (Kp * P) + (Ki * I) + (Kd * D);
 }
 
 void readSensor()
@@ -138,21 +122,69 @@ void readSensor()
   }
 }
 
-void blink() //Changed blink to only blink once, but for the online function it calls blink() as long as the device isn't on a line
-{
-  digitalWrite(13, HIGH);
-  delay(500);
-  digitalWrite(13, LOW);
-}
-
 void propForward(float PIDval)
 {
   //slight change, we're adding the PID value, not multiplying anymore
   int speed1 = SPEED + PIDval;
   int speed2 = SPEED - PIDval;
+
+  //Prevents motor from reversing
+  if(speed1 <= 0) {
+    speed1 = 0;
+  }
+    if(speed2 <= 0) {
+    speed2
+     = 0;
+  }
   leftMotor.drive(speed1);
   rightMotor.drive(speed2);
 }
+
+// For testing with a potentiometer
+float getCoefficient() {
+
+  voltage = analogRead(A3);
+  //Serial.println(voltage);
+  desiredCoefficient = map(voltage, 0, 1023, 0, 500); //Change range of Kp/Kd values here (Syntax: map(value, fromLow, fromHigh, toLow, toHigh))
+  
+  return desiredCoefficient;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//Not currently in use
+/*
+float percentDiff()
+{
+  //This will determine percent difference between outer sensors, and return that difference to the conditional in  the loop
+
+  return ((abs((sensorDataRaw[0] + sensorDataRaw[1]) - (sensorDataRaw[3] + sensorDataRaw[4]))) / ((sensorDataRaw[0] + sensorDataRaw[1] + sensorDataRaw[3] + sensorDataRaw[4]) / 2));
+}
+
 
 //It would be nice to eventually include a calibrate function, however for now we can simply hard code the IR max and min values based on
 //results we get from our IR sensor only test code
@@ -239,14 +271,25 @@ void storeData()
     logIndex++; //increments the log index value.
   }
 }
-
-/*
-Purely for testing purposes, makes it so you can adjust Kp and Kd using a potentiometer
-*/
-float getCoefficient() {
-
-  int voltage = analogRead(A3);
-  desiredCoefficient = map(voltage, 0, 1023, 0, 500); //Change range of Kp/Kd values here (Syntax: map(value, fromLow, fromHigh, toLow, toHigh))
-  
-  return desiredCoefficient;
+void blink() //Changed blink to only blink once, but for the online function it calls blink() as long as the device isn't on a line
+{
+  digitalWrite(13, HIGH);
+  delay(500);
+  digitalWrite(13, LOW);
 }
+//returns whether or not a line is detected.
+bool onLine()
+{
+  bool lineDetected = false;
+  for (int i = 0; i < NUM_SENSORS; i++)
+  {
+    if (sensorDataRaw[i] >= (minIR * 1.3)) //May want to change the 1.3
+    {                                      //checks each sensor to see if a line is detected
+      lineDetected = true;                 //if line is found, set lineDetected flag to true
+      break;                               // leave the loop, no reason to check other sensors.
+    }
+  }
+  return lineDetected; // returns true if a line is detected, false otherwise
+}
+
+*/

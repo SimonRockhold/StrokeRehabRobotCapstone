@@ -37,7 +37,7 @@ const int dataPoints = 50;
 //                   initialize motor variables
 
 const int DRIVE_TIME = 10; //Defines how long (in milliseconds) motors drive in forward functions. Keep this very low to reduce wagging
-const int SPEED = 100;
+const int SPEED = 125;
 
 // these constants are used to allow you to make your motor configuration
 // line up with function names like forward.  Value can be 1 or -1
@@ -56,9 +56,5 @@ const int offsetB = -1; //                                                     C
 #define PWMB 3
 //Optional
 #define STBY 6
-
-// PID control variables
-float error;
-float previousError;
 
 }//end of namespace defs
