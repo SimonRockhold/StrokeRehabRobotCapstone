@@ -37,7 +37,7 @@ const int dataPoints = 50;
 //                   initialize motor variables
 
 const int DRIVE_TIME = 10; //Defines how long (in milliseconds) motors drive in forward functions. Keep this very low to reduce wagging
-const int SPEED = 125;
+const int SPEED = 75;
 
 // these constants are used to allow you to make your motor configuration
 // line up with function names like forward.  Value can be 1 or -1

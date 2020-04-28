@@ -14,11 +14,11 @@ Timer calibrationTimer = Timer(CALIBRATION_TIME);
 Timer outputTimer = Timer(SECOND); // one second interval between outputs
 int logIndex = 0;                  // used by calibrate method
 int sensorLog[dataPoints][NUM_SENSORS];
-int maxIR = 850;
-int minIR = 190;
-float Kp = -1; //This will change using the potentiometer during testing
+int maxIR = 800;
+int minIR = 180;
+float Kp; //This will change using the potentiometer during testing
 float Kd; //This will change using the potentiometer during testing
-float Ki = 0;
+float Ki;
 float P, I, D;
 float direction;
 
@@ -45,9 +45,7 @@ void setup()
 
 void loop()
 {
-  //For testing PID values, set testing for Kp or Kd by changing values here
-  Kp = getCoefficient();
-  //Serial.println(Kp); //Can't print while device is running, since potentiometer saves physical location the correct Kp should print whenr recconnected
+  Kp = getCoefficient(); //For testing PID values, set testing for Kp or Kd by changing values here
 
   readSensor(); //Collects data from sensors and stores in an array
   direction = calculatePID();
@@ -129,13 +127,13 @@ void propForward(float PIDval)
   int speed2 = SPEED - PIDval;
 
   //Prevents motor from reversing
-  if(speed1 <= 0) {
-    speed1 = 0;
-  }
-    if(speed2 <= 0) {
-    speed2
-     = 0;
-  }
+//  if(speed1 <= 0) {
+//    speed1 = 0;
+//  }
+//    if(speed2 <= 0) {
+//    speed2
+//     = 0;
+//  }
   leftMotor.drive(speed1);
   rightMotor.drive(speed2);
 }
