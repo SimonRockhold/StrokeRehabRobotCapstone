@@ -4,7 +4,6 @@ OLED Screen Code
 // Local Libraries
 #include "oled_screen.h"
 
-
 //----------------------------------------------//
 // Setup Function (One Time At Startup)
 //----------------------------------------------//
@@ -14,13 +13,29 @@ void setup() {
   
   // Call class function
   oled.oled_setup();
+  delay(2000);  // Add two second delay
 
-  // drawbitmap(Width Center Point, Height Center Point, bit map array, bit map width, bit map height, color)
-  oled.draw_bitmap(0, 0, main_menu_bmp, SCREEN_WIDTH, SCREEN_HEIGHT);    // Draw a bitmap image
   
-  delay(2000); // Wait two seconds
-  oled.draw_bitmap(0, 0, eyes_happy_bmp, SCREEN_WIDTH, SCREEN_HEIGHT);    // Draw a bitmap image
+  
+  // Request Eyes Resting
+  oled.eyes_resting();
+  delay(2000);
 
+  // Request Eyes Open
+  oled.eyes_open();
+  delay(2000);
+
+  // Request Menu
+  oled.main_menu();
+  delay(2000);
+
+  // Request Guide
+  oled.guide();
+  delay(2000);
+
+  // Request Eyes Happy
+  oled.eyes_happy();
+  delay(2000);
 }
 
 
@@ -34,17 +49,6 @@ void setup() {
 void loop() {
   // Unused loop, required by Arduino code
 }
-
-
-
-
-
-
-
-
-
-
-
 
 
 
