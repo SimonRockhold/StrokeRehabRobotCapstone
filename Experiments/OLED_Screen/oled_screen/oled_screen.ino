@@ -13,10 +13,8 @@ void setup() {
   
   // Call class function
   oled.oled_setup();
-  delay(2000);  // Add two second delay
+  delay(500);  // Add two second delay
 
-  
-  
   // Request Eyes Resting
   oled.eyes_resting();
   delay(2000);
@@ -31,7 +29,29 @@ void setup() {
 
   // Request Guide
   oled.guide();
+  delay(8000);
+
+  // Display Score
+  oled.display_score();
   delay(2000);
+
+  // Update and Display Score
+  oled.update_score(1);
+  oled.display_score();
+  delay(2000);
+
+  // Print Text Test
+  oled.print_text("\nYou Can \nDo It!");
+  delay(2000);
+
+  // Update and Display Score again
+  oled.update_score(20);
+  oled.display_score();
+  delay(2000);
+
+  // Declare Victory
+  oled.victory();
+  delay(1000);
 
   // Request Eyes Happy
   oled.eyes_happy();

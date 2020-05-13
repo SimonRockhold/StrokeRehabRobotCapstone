@@ -35,7 +35,8 @@ class oled_screen_class
 
         // Functions
         void draw_bitmap(uint8_t x_pos, uint8_t y_pos, const uint8_t *bitmap, uint8_t w, uint8_t h);
-        //void wait(long delay);
+        void wait(long delay);
+        void lightShow();
         
 
 
@@ -52,4 +53,8 @@ class oled_screen_class
         void eyes_happy();
         void eyes_open();
         void eyes_resting();
+        void print_text(char str[], int text_size=2);
+        void victory();
+        void display_score();
+        void update_score(int newScore);
 };
