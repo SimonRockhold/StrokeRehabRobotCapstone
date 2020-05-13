@@ -4,9 +4,13 @@
 class SDCard
 {
 private:
-    File file;
-    String filename;
+    char filename[13];
+    bool init;
 public:
     SDCard(int cardSelect, String filenameIN);
-    void writeToSD(String in);
+    void printToSD(String in);
+    void write(byte *buf, int len);
+    byte read(byte *buf, int len);
+    bool initialized();
+    void readLine(byte *buffer, int bufflerLength);
 };

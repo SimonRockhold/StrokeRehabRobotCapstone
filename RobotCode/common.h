@@ -33,11 +33,9 @@ const float CENTER_WEIGHT = 0.2; //Dont know if we'll need the center weight, I 
 const float weightArray[] = {-OUTER_WEIGHT, -INNER_WEIGHT, CENTER_WEIGHT, INNER_WEIGHT, OUTER_WEIGHT};
 
 //number of data points to be collected. Will be made redundant with file datalogging
-const int dataPoints = 50;
+//const int dataPoints = 50;
 
-//                   initialize motor variables
-
-const int SPEED = 100;
+#define SPEED 100
 
 // these constants are used to allow you to make your motor configuration
 // line up with function names like forward.  Value can be 1 or -1
