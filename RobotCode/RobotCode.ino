@@ -42,19 +42,25 @@ void startup()
   pinMode(BUTTON, INPUT);
   Timer calibrateStartupTimer = Timer(5 * SECOND);
   //wait for 5 seconds at startup. If button is pressed, recalibrate. otherwise, load from file.
+  bool newCalibration = false;
   while (!calibrateStartupTimer.timeElapsed())
   {
     if (digitalRead(BUTTON))
     {
-      calibrate();
+      newCalibration = true;
       break;
     }
-    else
-    {
-      Serial.println("reading calibration from file...");
-      calibrationFromFile();
-    }
   }
+  if (newCalibration)
+  {
+    calibrate();
+  }
+  else
+  {
+    calibrationFromFile();
+  }
+
+  Serial.println(maxIR);
 }
 
 //////////////////////// loop
