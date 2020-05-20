@@ -3,6 +3,7 @@
 #include "common.h"
 #include "Timer.h"
 #include "SDCard.h"
+#include "Calibration.h"
 #include <SD.h>
 #include <SPI.h>
 
@@ -10,19 +11,18 @@ using namespace defs; //inlcudes all definitions made in common.h
 
 namespace //limits the scope of decalations inside namespace to this file.
 {
-Motor motor1 = Motor(AIN1, AIN2, PWMA, offsetA, STBY); //I need to check the motor code I wrote for testing to change these. I know offset needs to be changed
-Motor motor2 = Motor(BIN1, BIN2, PWMB, offsetB, STBY);
+  Motor motor1 = Motor(AIN1, AIN2, PWMA, offsetA, STBY); //I need to check the motor code I wrote for testing to change these. I know offset needs to be changed
+  Motor motor2 = Motor(BIN1, BIN2, PWMB, offsetB, STBY);
 
-Timer calibrationTimer = Timer(CALIBRATION_TIME);
-Timer outputTimer = Timer(SECOND);   // one second interval between outputs
-Timer logTimer = Timer(SECOND * 5); // set a timer to log all values during that time.
+  Timer calibrationTimer = Timer(CALIBRATION_TIME);
+  Timer outputTimer = Timer(SECOND);  // one second interval between outputs
+  Timer logTimer = Timer(SECOND * 5); // set a timer to log all values during that time.
 
-SDCard sensorRecord = SDCard(SD_CS, "sensorLog.csv");
+  SDCard sensorRecord = SDCard(SD_CS, "sensors.csv");
+  SDCard calibrationVals = SDCard(SD_CS, "calibr.dat");
 
-int logIndex = 0;
-//int sensorLog[dataPoints][NUM_SENSORS];
-int maxIR = SENSOR_MAX;
-int minIR = SENSOR_MIN;
+  int maxIR = SENSOR_MAX;
+  int minIR = SENSOR_MIN;
 } //END namespace
 
 void setup()
@@ -32,8 +32,7 @@ void setup()
   Serial.begin(9600);
   Serial.println("Connected"); //quick check to make sure device is communicating
 
-  //startup();
-  //calibrate();
+  startup();
 }
 
 void startup()
@@ -64,19 +63,17 @@ void loop()
 {
   //Serial.print("loop");
   readSensor(); //Collects data from sensors and stores in an array
-  //IRdirection = getRatio();
-  //propForward(IRdirection);
+  IRdirection = getRatio();
+  propForward(IRdirection);
   if (!logTimer.timeElapsed())
   {
     logToSD();
-    
   }
   else
   {
     //Serial.println("done");
-        digitalWrite(13, HIGH);
+    digitalWrite(13, HIGH);
   }
-  
 }
 
 //This should be a better way to find a turning value
@@ -173,28 +170,11 @@ void calibrate()
 
   maxIR = 0.9 * tempMax;
   minIR = 1.1 * tempMin;
+
+  Calibration values;
+  calibrationVals.write((byte *)&values, sizeof(values));
 }
 
-/*
-void printData()
-{
-  // prints debug info to serial connection
-  Serial.println("calibrated min and max: ");
-  Serial.println(maxIR);
-  Serial.println(minIR);
-  Serial.println();
-  int readoutIndex = 0;
-  while (readoutIndex < logIndex)
-  {
-    for (int i = 0; i < NUM_SENSORS; i++)
-    {
-      Serial.print(sensorLog[readoutIndex][i]);
-      Serial.print(", ");
-    }
-    Serial.println(readoutIndex);
-  }
-}
-*/
 void logToSD()
 //writes the current state of the sensor array to a file called "SensorLog.txt" one line at a time;
 {
@@ -207,7 +187,7 @@ void logToSD()
       temp += ", ";
     }
   }
-  sensorRecord.writeToSD(temp);
+  sensorRecord.printToSD(temp);
   Serial.println(temp);
 }
 
@@ -232,60 +212,18 @@ int getMin(int tempMin)
   return tempMin; //Returns tempMin to the calibrate while loop
 }
 
-/*
-void storeData()
-{
-  //This will store sensor data, use just for debugging/information presenting
-  if (logIndex < dataPoints)
-  { // checks whether or not sensorLog is full.
-    for (int i = 0; i < NUM_SENSORS; i++)
-    {
-      sensorLog[logIndex][i] = sensorDataRaw[i];
-    }
-    logIndex++; //increments the log index value.
-  }
-}
-*/
-
 void welcomeMessage()
 //displays a welcome message
 {
 }
 
 void calibrationFromFile()
-//sets the calibration values from the previous values stored on SD in "calibration.txt"
+//sets the calibration values from the previous values stored on SD in "calibr.dat"
 {
-  if (!SD.begin(SD_CS))
-  {
-    Serial.println("SD card initialization failed.");
-  }
-  File calibration;
-  if (SD.exists("calibration.txt"))
-  {
-    Serial.println("calibration file found.");
-    calibration = SD.open("calibration.txt", FILE_READ);
-  }
-  else
-  {
-    Serial.println("calibration file not found.");
-  }
+  Serial.println("reading previous calibration values from file");
 
-  if (calibration)
-  {
-    while (calibration.available())
-    {
-      //Serial.write(calibration.read());
-      maxIR = calibration.read();
-      minIR = calibration.read();
-      Serial.println(maxIR);
-      Serial.println(minIR);
-    }
-    calibration.close();
-  }
-  else
-  {
-    Serial.println("read failed.");
-    while (true)
-      ;
-  }
+  Calibration vals;
+  calibrationVals.read((byte *)&vals, sizeof(vals));
+  maxIR = vals.max_ir;
+  minIR = vals.min_ir;
 }
