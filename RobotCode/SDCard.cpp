@@ -52,7 +52,8 @@ byte SDCard::read(byte *buf, int len)
     }
     else
     {
-        Serial.println("failed to read, dang");
+        Serial.println("failed to read file, dang");
+        Serial.println(filename);
     }
     f.close();
 }
