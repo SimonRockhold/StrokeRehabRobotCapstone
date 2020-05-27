@@ -11,8 +11,8 @@ using namespace defs; //inlcudes all definitions made in common.h
 
 namespace //limits the scope of decalations inside namespace to this file.
 {
-  Motor motor1 = Motor(AIN1, AIN2, PWMA, offsetA, STBY); //I need to check the motor code I wrote for testing to change these. I know offset needs to be changed
-  Motor motor2 = Motor(BIN1, BIN2, PWMB, offsetB, STBY);
+  Motor leftMotor = Motor(AIN1, AIN2, PWMA, offsetA, STBY); //I need to check the motor code I wrote for testing to change these. I know offset needs to be changed
+  Motor rightMotor = Motor(BIN1, BIN2, PWMB, offsetB, STBY);
 
   Timer calibrationTimer = Timer(CALIBRATION_TIME);
   Timer outputTimer = Timer(SECOND);  // one second interval between outputs
@@ -23,7 +23,20 @@ namespace //limits the scope of decalations inside namespace to this file.
 
   int maxIR = SENSOR_MAX;
   int minIR = SENSOR_MIN;
-} //END namespace
+  //int maxIR = 800; //not currently used as calibrate method is functional
+  //int minIR = 180;
+
+  float Kp; //This will change using the potentiometer during testing
+  float Kd; //This will change using the potentiometer during testing
+  float Ki;
+  float P, I, D;
+  float direction;
+
+  float voltage;
+  float error;
+  float previousError;
+  float desiredCoefficient; //For testing
+} // namespace
 
 void setup()
 //all actions that are only done once
@@ -67,10 +80,13 @@ void startup()
 
 void loop()
 {
-  //Serial.print("loop");
+
+  Kp = getCoefficient(); //For testing PID values, set testing for Kp or Kd by changing values here
+
   readSensor(); //Collects data from sensors and stores in an array
-  IRdirection = getRatio();
-  propForward(IRdirection);
+  direction = calculatePID();
+  propForward(direction);
+
   if (!logTimer.timeElapsed())
   {
     logToSD();
@@ -121,9 +137,26 @@ float getRatio()
   sum = constrain(sum, (-OUTER_WEIGHT * maxIR), (OUTER_WEIGHT * maxIR));
 
   //maps to 0 to 1, try and mess with this
+
   float temp = map(sum, (-OUTER_WEIGHT * maxIR), (OUTER_WEIGHT * maxIR), 0, 1000.00); //Values were in wrong order, they've been rearranged
 
   return (temp / 1000.00);
+}
+
+
+float calculatePID()
+{
+  //We want to redefine previousError first, or else previousError and error will always be the same
+  previousError = error;
+  //error was changed. Not sure if the order matters, but i read that error = desiredPoint - actualPoint
+  error = 0.5 - getRatio();
+
+  P = error;
+  I = I + error;
+  D = error - previousError;
+  Serial.println(Kp); //Can't print while device is running, since potentiometer saves physical location the correct Kp should print whenr recconnected
+
+  return (Kp * P) + (Ki * I) + (Kd * D);
 }
 
 void readSensor()
@@ -134,19 +167,41 @@ void readSensor()
   }
 }
 
-void blink() //Changed blink to only blink once, but for the online function it calls blink() as long as the device isn't on a line
+void propForward(float PIDval)
 {
-  digitalWrite(13, HIGH);
-  delay(500);
-  digitalWrite(13, LOW);
+  //slight change, we're adding the PID value, not multiplying anymore
+  int speed1 = SPEED + PIDval;
+  int speed2 = SPEED - PIDval;
+
+  //Prevents motor from reversing
+  //  if(speed1 <= 0) {
+  //    speed1 = 0;
+  //  }
+  //    if(speed2 <= 0) {
+  //    speed2
+  //     = 0;
+  //  }
+  leftMotor.drive(speed1);
+  rightMotor.drive(speed2);
 }
 
-void propForward(float ratio)
+// For testing with a potentiometer
+float getCoefficient()
 {
-  int speed1 = SPEED * ratio;
-  int speed2 = SPEED * (1 - ratio);
-  motor1.drive(speed1);
-  motor2.drive(speed2);
+  voltage = analogRead(A3);
+  //Serial.println(voltage);
+  desiredCoefficient = map(voltage, 0, 1023, 0, 500); //Change range of Kp/Kd values here (Syntax: map(value, fromLow, fromHigh, toLow, toHigh))
+
+  return desiredCoefficient;
+}
+
+//Not currently in use
+
+float percentDiff()
+{
+  //This will determine percent difference between outer sensors, and return that difference to the conditional in  the loop
+
+  return ((abs((sensorDataRaw[0] + sensorDataRaw[1]) - (sensorDataRaw[3] + sensorDataRaw[4]))) / ((sensorDataRaw[0] + sensorDataRaw[1] + sensorDataRaw[3] + sensorDataRaw[4]) / 2));
 }
 
 void calibrate()

@@ -12,10 +12,6 @@ const int NUM_SENSORS = 5;
 const int SENSOR_MAX = 1024;
 const int SENSOR_MIN = 0;
 
-
-//Initialize IRdirection. This will be a value from 0-1 that determines our direction, with 0 is left, 1 is right, and 0.5 is forward
-float IRdirection;
-
 //Initialize array to store sensor values
 int sensorDataRaw[NUM_SENSORS];
 
@@ -35,7 +31,8 @@ const float weightArray[] = {-OUTER_WEIGHT, -INNER_WEIGHT, CENTER_WEIGHT, INNER_
 //number of data points to be collected. Will be made redundant with file datalogging
 //const int dataPoints = 50;
 
-#define SPEED 100
+const int DRIVE_TIME = 10; //Defines how long (in milliseconds) motors drive in forward functions. Keep this very low to reduce wagging
+const int SPEED = 75;
 
 // these constants are used to allow you to make your motor configuration
 // line up with function names like forward.  Value can be 1 or -1
@@ -71,6 +68,5 @@ const int IRSensor[] = {sensor0, sensor1, centerSensor, sensor3, sensor4};
 
 #define display_write A3
 #define display_read A4
-
 
 }//end of namespace defs

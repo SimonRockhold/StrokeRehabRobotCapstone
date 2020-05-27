@@ -1,5 +1,3 @@
-// namespace n
-// {
 class Timer
 {
 private:
@@ -20,4 +18,3 @@ public:
     }
     bool timeElapsed();
 };
-// }
