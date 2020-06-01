@@ -5,7 +5,7 @@ namespace defs {
 #define MINUTE 60000 //60,000 milliseconds per minute
 
 const unsigned long RUN_TIME = 1 * MINUTE; //decides how long to run our code, 60,000 is one minute, the second number multiplies that minute
-
+const int SESSION_DURATION = 2 * MINUTE; //defines the length of a session. const here, but should be able to be modified through user input later.
 const int NUM_SENSORS = 5;
 
 // to be set when the sensor max and min are known, and put here to improve code flexibility if we change sensors at any point.

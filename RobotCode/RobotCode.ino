@@ -1,9 +1,11 @@
-//Download library here https://learn.sparkfun.com/tutorials/tb6612fng-hookup-guide#library-and-example-code, manually import by copying library to User\Documents\Arduino\libraries
 #include <SparkFun_TB6612.h>
+#include <Adafruit_SSD1306.h>
+#include <Adafruit_GFX.h>
 #include "common.h"
 #include "Timer.h"
 #include "SDCard.h"
 #include "Calibration.h"
+#include "oled_screen.h"
 #include <SD.h>
 #include <SPI.h>
 
@@ -20,6 +22,8 @@ namespace //limits the scope of decalations inside namespace to this file.
 
   SDCard sensorRecord = SDCard(SD_CS, "sensors.csv");
   SDCard calibrationVals = SDCard(SD_CS, "calibr.dat");
+
+  OledScreen screen = OledScreen();
 
   int maxIR = SENSOR_MAX;
   int minIR = SENSOR_MIN;
@@ -49,7 +53,7 @@ void setup()
 }
 
 void startup()
-//
+//distinct from setup as is used to begin user related behavior rather than hardware requirements.
 {
   welcomeMessage(); //will display a welcome message
   pinMode(BUTTON, INPUT);
@@ -74,13 +78,21 @@ void startup()
   }
 
   Serial.println(maxIR);
+
+  screen.main_menu();
+  //menu selection not yet implemented.
+  runSession();
 }
 
 //////////////////////// loop
 
 void loop()
 {
+}
 
+void lineFollowTest()
+// Robot follows the line indefinitely, logs sensor data for duration set by logTimer.
+{
   Kp = getCoefficient(); //For testing PID values, set testing for Kp or Kd by changing values here
 
   readSensor(); //Collects data from sensors and stores in an array
@@ -98,8 +110,40 @@ void loop()
   }
 }
 
-//This should be a better way to find a turning value
+void runSession()
+{
+  followLine();
+  screen.display_score();
+  // waits until button is pressed, then returns to menu
+  while (true)
+  {
+    if (digitalRead(BUTTON))
+    {
+      menu();
+    }
+  }
+}
 
+void menu()
+// menu selection not yet implemented
+{
+  screen.main_menu();
+}
+
+void followLine()
+{
+  Timer runTimer = Timer(SESSION_DURATION);
+  while (!runTimer.timeElapsed())
+  {
+    Kp = getCoefficient(); //For testing PID values, set testing for Kp or Kd by changing values here
+
+    readSensor(); //Collects data from sensors and stores in an array
+    direction = calculatePID();
+    propForward(direction);
+  }
+  screen.display_score(); //Display score, wait for 5 seconds without input, then allow user to press button to continue.
+  delay(5 * SECOND);
+}
 float getRatio()
 {
   //Serial.print(F("getRatio"));
@@ -143,7 +187,6 @@ float getRatio()
   return (temp / 1000.00);
 }
 
-
 float calculatePID()
 {
   //We want to redefine previousError first, or else previousError and error will always be the same
@@ -169,18 +212,9 @@ void readSensor()
 
 void propForward(float PIDval)
 {
-  //slight change, we're adding the PID value, not multiplying anymore
   int speed1 = SPEED + PIDval;
   int speed2 = SPEED - PIDval;
 
-  //Prevents motor from reversing
-  //  if(speed1 <= 0) {
-  //    speed1 = 0;
-  //  }
-  //    if(speed2 <= 0) {
-  //    speed2
-  //     = 0;
-  //  }
   leftMotor.drive(speed1);
   rightMotor.drive(speed2);
 }
@@ -189,19 +223,9 @@ void propForward(float PIDval)
 float getCoefficient()
 {
   voltage = analogRead(A3);
-  //Serial.println(voltage);
   desiredCoefficient = map(voltage, 0, 1023, 0, 500); //Change range of Kp/Kd values here (Syntax: map(value, fromLow, fromHigh, toLow, toHigh))
 
   return desiredCoefficient;
-}
-
-//Not currently in use
-
-float percentDiff()
-{
-  //This will determine percent difference between outer sensors, and return that difference to the conditional in  the loop
-
-  return ((abs((sensorDataRaw[0] + sensorDataRaw[1]) - (sensorDataRaw[3] + sensorDataRaw[4]))) / ((sensorDataRaw[0] + sensorDataRaw[1] + sensorDataRaw[3] + sensorDataRaw[4]) / 2));
 }
 
 void calibrate()
@@ -276,6 +300,7 @@ int getMin(int tempMin)
 void welcomeMessage()
 //displays a welcome message
 {
+  screen.print_text("Welcome!");
 }
 
 void calibrationFromFile()
