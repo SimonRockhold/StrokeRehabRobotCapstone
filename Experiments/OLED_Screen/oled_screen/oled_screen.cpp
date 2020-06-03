@@ -13,36 +13,13 @@
 // Call Adafruit display definition
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
-//---------------------------------
-// OLED Screen Setup Function (One Time Call At Startup)
-//---------------------------------
-void oled_screen_class::oled_setup()
-{
-    // Open I2C Serial Connection at 9600 Baud
-    Serial.begin(9600);
-
-    // SSD1306_SWITCHCAPVCC = generate display voltage from 3.3V internally
-    if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) { // Address 0x3C for 128x64
-      Serial.println(F("SSD1306 allocation failed"));
-      for(;;); // Don't proceed, loop forever
-    }
-
-    // Show initial display buffer contents on the screen --
-    // the library initializes this with an Adafruit splash screen.
-    display.display();
-    wait(2000); // Pause for 2 seconds
-
-    // Clear the buffer (must be done every time)
-    display.clearDisplay();
-
-    main_menu();//draw_bitmap(0, 0, main_menu_bmp, SCREEN_WIDTH, SCREEN_HEIGHT);    // Draw a bitmap image
-};
-
-
 
 //---------------------------------
-// Function to draw a specified bitmap onto screen, offset by x_pos, y_pos, with a width of w and height of h
+// Private Functions
 //---------------------------------
+
+// Function to draw a specified bitmap onto screen.
+// Inputs: offset by x_pos, y_pos, with a width of w and height of h
 void oled_screen_class::draw_bitmap(uint8_t x_pos, uint8_t y_pos, const uint8_t *bitmap, uint8_t w, uint8_t h)
 {
     display.clearDisplay();
@@ -53,10 +30,7 @@ void oled_screen_class::draw_bitmap(uint8_t x_pos, uint8_t y_pos, const uint8_t 
     wait(1000);
 }
 
-
-//---------------------------------
 // Function to wait a specified delay, in milliseconds
-//---------------------------------
 void oled_screen_class::wait(long delay)
 {
     unsigned long currentMillis = millis();
@@ -67,64 +41,7 @@ void oled_screen_class::wait(long delay)
     }
 }
 
-
-
-//---------------------------------
-// Function to write an input string to the display
-//---------------------------------
-void oled_screen_class::print_text(char str[], int textSize=2)
-{
-    #define charsPerLine 20 // Number of characters (textsize = 1) that fit on a line
-    //int TextSize = 2;
-    
-    int currentPosition = 0;
-    int currentLine = 0;
-
-    display.clearDisplay();
-
-    display.setTextSize(textSize);
-    display.setTextColor(WHITE);
-    display.setCursor(0,0);
-
-
-    for ( int i = 0 ; i < strlen(str); i++)
-    {
-        if(str[i] == "\\" && str[i+1]=="n"){
-            currentPosition = 0;
-            currentLine += textSize;
-            display.setCursor(currentPosition,currentLine);
-            i++;
-        }
-        else if(currentPosition+textSize >= charsPerLine){
-            currentPosition = 0;
-            currentLine += textSize;
-            display.setCursor(currentPosition,currentLine);
-        }
-        else{
-          display.print(str[i]);
-          display.display();
-          wait(10);
-        }
-    }
-}
-
-
-void oled_screen_class::display_score() {
-    display.clearDisplay();
-    display.setTextSize(2);
-    display.setTextColor(WHITE);
-    display.setCursor(0,0);
-
-    display.print("\nScore = ");
-    display.print(score);
-    display.display();
-}
-
-void oled_screen_class::update_score(int newScore) {
-    score = newScore;
-}
-
-
+// Function to run through a fixed animation 
 void oled_screen_class::lightShow() {
   int16_t i;
 
@@ -187,8 +104,88 @@ void oled_screen_class::lightShow() {
 
 
 //---------------------------------
-// Function to display "Victory" animation
+// Public Functions
 //---------------------------------
+
+// OLED Screen Setup Function (One Time Call At Startup)
+void oled_screen_class::oled_setup()
+{
+    // Open I2C Serial Connection at 9600 Baud
+    Serial.begin(9600);
+
+    // SSD1306_SWITCHCAPVCC = generate display voltage from 3.3V internally
+    if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) { // Address 0x3C for 128x64
+      Serial.println(F("SSD1306 allocation failed"));
+      for(;;); // Don't proceed, loop forever
+    }
+
+    // Show initial display buffer contents on the screen --
+    // the library initializes this with an Adafruit splash screen.
+    display.display();
+    wait(2000); // Pause for 2 seconds
+
+    // Clear the buffer (must be done every time)
+    display.clearDisplay();
+
+    main_menu();//draw_bitmap(0, 0, main_menu_bmp, SCREEN_WIDTH, SCREEN_HEIGHT);    // Draw a bitmap image
+};
+
+
+// Function to write an input string to the display
+void oled_screen_class::print_text(char str[], int textSize=2)
+{
+    #define charsPerLine 20 // Number of characters (textsize = 1) that fit on a line
+    //int TextSize = 2;
+    
+    int currentPosition = 0;
+    int currentLine = 0;
+
+    display.clearDisplay();
+
+    display.setTextSize(textSize);
+    display.setTextColor(WHITE);
+    display.setCursor(0,0);
+
+
+    for ( int i = 0 ; i < strlen(str); i++)
+    {
+        if(str[i] == "\\" && str[i+1]=="n"){
+            currentPosition = 0;
+            currentLine += textSize;
+            display.setCursor(currentPosition,currentLine);
+            i++;
+        }
+        else if(currentPosition+textSize >= charsPerLine){
+            currentPosition = 0;
+            currentLine += textSize;
+            display.setCursor(currentPosition,currentLine);
+        }
+        else{
+          display.print(str[i]);
+          display.display();
+          wait(10);
+        }
+    }
+}
+
+// Function to display current score
+void oled_screen_class::display_score() {
+    display.clearDisplay();
+    display.setTextSize(2);
+    display.setTextColor(WHITE);
+    display.setCursor(0,0);
+
+    display.print("\nScore = ");
+    display.print(score);
+    display.display();
+}
+
+// Function to update score
+void oled_screen_class::update_score(int newScore) {
+    score = newScore;
+}
+
+// Function to display "Victory" animation
 void oled_screen_class::victory()
 {
     // Display a scrolling "VICTORY!"
@@ -208,11 +205,7 @@ void oled_screen_class::victory()
     lightShow();
 }
 
-
-
-//---------------------------------
 // Function shortcuts to display various screens
-//---------------------------------
 void oled_screen_class::main_menu()
 {
     draw_bitmap(0, 0, main_menu_bmp, SCREEN_WIDTH, SCREEN_HEIGHT);

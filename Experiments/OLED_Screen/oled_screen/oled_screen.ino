@@ -1,5 +1,5 @@
 /**************************************************************************
-OLED Screen Code
+OLED Screen Code Example
 **************************************************************************/
 // Local Libraries
 #include "oled_screen.h"
@@ -13,7 +13,7 @@ void setup() {
   
   // Call class function
   oled.oled_setup();
-  delay(500);  // Add two second delay
+  delay(2000);  // Add two second delay
 
   // Request Eyes Resting
   oled.eyes_resting();
@@ -31,7 +31,7 @@ void setup() {
   oled.guide();
   delay(8000);
 
-  // Display Score
+  // Display Current Score
   oled.display_score();
   delay(2000);
 
