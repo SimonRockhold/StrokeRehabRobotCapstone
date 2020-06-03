@@ -8,7 +8,7 @@
 *******************************************************************************/
 
 // Local Libraries
-#include "oled_screen.h"
+#include "oled_screen_class.h"
 
 // Call Adafruit display definition
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
@@ -35,7 +35,7 @@ void oled_screen_class::oled_setup()
     // Clear the buffer (must be done every time)
     display.clearDisplay();
 
-    main_menu();//draw_bitmap(0, 0, main_menu_bmp, SCREEN_WIDTH, SCREEN_HEIGHT);    // Draw a bitmap image
+    //main_menu();//draw_bitmap(0, 0, main_menu_bmp, SCREEN_WIDTH, SCREEN_HEIGHT);    // Draw a bitmap image
 };
 
 
@@ -43,12 +43,12 @@ void oled_screen_class::oled_setup()
 //---------------------------------
 // Function to draw a specified bitmap onto screen, offset by x_pos, y_pos, with a width of w and height of h
 //---------------------------------
-void oled_screen_class::draw_bitmap(uint8_t x_pos, uint8_t y_pos, const uint8_t *bitmap, uint8_t w, uint8_t h)
+void oled_screen_class::draw_bitmap(uint8_t x_pos, uint8_t y_pos, const uint8_t *bitmap, uint8_t w, uint8_t h, uint8_t color=1)
 {
     display.clearDisplay();
 
     // drawbitmap(Width Center Point, Height Center Point, bit map array, bit map width, bit map height, color)
-    display.drawBitmap(x_pos, y_pos, bitmap, w, h, 1);
+    display.drawBitmap(x_pos, y_pos, bitmap, w, h, color);
     display.display();
     wait(1000);
 }
@@ -109,6 +109,10 @@ void oled_screen_class::print_text(char str[], int textSize=2)
 }
 
 
+
+//---------------------------------
+// Function to display the score
+//---------------------------------
 void oled_screen_class::display_score() {
     display.clearDisplay();
     display.setTextSize(2);
@@ -120,11 +124,21 @@ void oled_screen_class::display_score() {
     display.display();
 }
 
+
+
+//---------------------------------
+// Function to update the current score and display the new score
+//---------------------------------
 void oled_screen_class::update_score(int newScore) {
     score = newScore;
+    display_score();
 }
 
 
+
+//---------------------------------
+// Function to play animation
+//---------------------------------
 void oled_screen_class::lightShow() {
   int16_t i;
 
@@ -213,27 +227,190 @@ void oled_screen_class::victory()
 //---------------------------------
 // Function shortcuts to display various screens
 //---------------------------------
-void oled_screen_class::main_menu()
+
+void oled_screen_class::menu_start()
 {
-    draw_bitmap(0, 0, main_menu_bmp, SCREEN_WIDTH, SCREEN_HEIGHT);
+    draw_bitmap(0, 0, menu_start_bmp, SCREEN_WIDTH, SCREEN_HEIGHT, WHITE);
+}
+
+void oled_screen_class::start_back()
+{
+    display.clearDisplay();
+    display.setTextSize(1);
+    display.setTextColor(WHITE);
+    display.setCursor(0,0);
+
+    display.print("Place robot on line");
+
+    display.drawBitmap(0, SCREEN_HEIGHT/2, back_selected_bmp, SCREEN_WIDTH/2, SCREEN_HEIGHT/2, WHITE);
+    display.drawBitmap(SCREEN_WIDTH/2, SCREEN_HEIGHT/2, start_bmp, SCREEN_WIDTH/2, SCREEN_HEIGHT/2, WHITE);
+
+    display.display();
+}
+
+void oled_screen_class::start_start()
+{
+    display.clearDisplay();
+    display.setTextSize(1);
+    display.setTextColor(WHITE);
+    display.setCursor(0,0);
+
+    display.print("Place robot on line");
+
+    display.drawBitmap(0, SCREEN_HEIGHT/2, back_bmp, SCREEN_WIDTH/2, SCREEN_HEIGHT/2, WHITE);
+    display.drawBitmap(SCREEN_WIDTH/2, SCREEN_HEIGHT/2, start_selected_bmp, SCREEN_WIDTH/2, SCREEN_HEIGHT/2, WHITE);
+
+    display.display();
+}
+
+void oled_screen_class::countdown()
+{
+    print_text("\n  5", 4);
+    wait(1000);
+    print_text("\n  4", 4);
+    wait(1000);
+    print_text("\n  3", 4);
+    wait(1000);
+    print_text("\n  2", 4);
+    wait(1000);
+    print_text("\n  1", 4);
+    wait(1000);
+    eyes_open();
+}
+
+void oled_screen_class::menu_guide()
+{
+    draw_bitmap(0, 0, menu_guide_bmp, SCREEN_WIDTH, SCREEN_HEIGHT, WHITE);
 }
 
 void oled_screen_class::guide()
 {
-    draw_bitmap(0, 0, guide_bmp, SCREEN_WIDTH, SCREEN_HEIGHT);
+    draw_bitmap(0, 0, guide_bmp, SCREEN_WIDTH, SCREEN_HEIGHT, WHITE);
 }
+
+void oled_screen_class::menu_score()
+{
+    draw_bitmap(0, 0, menu_score_bmp, SCREEN_WIDTH, SCREEN_HEIGHT, WHITE);
+}
+
+void oled_screen_class::score_back()
+{
+    display.clearDisplay();
+    display.setTextSize(2);
+    display.setTextColor(WHITE);
+    display.setCursor(0,0);
+
+    display.print("Last Score = ");
+    display.print(score);
+
+    display.drawBitmap(0, SCREEN_HEIGHT/2, back_selected_bmp, SCREEN_WIDTH/2, SCREEN_HEIGHT/2, WHITE);
+
+    display.display();
+}
+
+void oled_screen_class::menu_cal()
+{
+    draw_bitmap(0, 0, menu_cal_bmp, SCREEN_WIDTH, SCREEN_HEIGHT, WHITE);
+}
+
+void oled_screen_class::cal_back()
+{
+    display.clearDisplay();
+    display.setTextSize(2);
+    display.setTextColor(WHITE);
+    display.setCursor(0,0);
+
+    display.print("Calibrate?");
+
+    display.drawBitmap(0, SCREEN_HEIGHT/2, back_selected_bmp, SCREEN_WIDTH/2, SCREEN_HEIGHT/2, WHITE);
+    display.drawBitmap(SCREEN_WIDTH/2, SCREEN_HEIGHT/2, start_bmp, SCREEN_WIDTH/2, SCREEN_HEIGHT/2, WHITE);
+
+    display.display();
+}
+
+void oled_screen_class::cal_start()
+{
+    display.clearDisplay();
+    display.setTextSize(2);
+    display.setTextColor(WHITE);
+    display.setCursor(0,0);
+
+    display.print("Calibrate?");
+
+    display.drawBitmap(0, SCREEN_HEIGHT/2, back_bmp, SCREEN_WIDTH/2, SCREEN_HEIGHT/2, WHITE);
+    display.drawBitmap(SCREEN_WIDTH/2, SCREEN_HEIGHT/2, start_selected_bmp, SCREEN_WIDTH/2, SCREEN_HEIGHT/2, WHITE);
+
+    display.display();
+}
+
+void oled_screen_class::calibrate()
+{
+    display.setTextSize(2);
+    display.setTextColor(WHITE);
+
+    display.clearDisplay();
+    display.setCursor(0,0);
+    display.print("Calibrate\n.");
+    display.display();
+    wait(1000);
+
+    display.clearDisplay();
+    display.setCursor(0,0);
+    display.print("Calibrate\n..");
+    display.display();
+    wait(1000);
+
+    display.clearDisplay();
+    display.setCursor(0,0);
+    display.print("Calibrate\n...");
+    display.display();
+    wait(1000);
+
+    eyes_resting();
+    eyes_open();
+    eyes_happy();
+}
+
 
 void oled_screen_class::eyes_happy()
 {
-    draw_bitmap(0, 0, eyes_happy_bmp, SCREEN_WIDTH, SCREEN_HEIGHT);
+    draw_bitmap(0, 0, eyes_happy_bmp, SCREEN_WIDTH, SCREEN_HEIGHT, WHITE);
+}
+
+void oled_screen_class::eyes_happy_2()
+{
+    draw_bitmap(0, 0, eyes_happy_2_bmp, SCREEN_WIDTH, SCREEN_HEIGHT, WHITE);
 }
 
 void oled_screen_class::eyes_open()
 {
-    draw_bitmap(0, 0, eyes_open_bmp, SCREEN_WIDTH, SCREEN_HEIGHT);
+    draw_bitmap(0, 0, eyes_open_bmp, SCREEN_WIDTH, SCREEN_HEIGHT, WHITE);
+}
+
+void oled_screen_class::eyes_open_2()
+{
+    draw_bitmap(0, 0, eyes_open_2_bmp, SCREEN_WIDTH, SCREEN_HEIGHT, WHITE);
 }
 
 void oled_screen_class::eyes_resting()
 {
-    draw_bitmap(0, 0, eyes_resting_bmp, SCREEN_WIDTH, SCREEN_HEIGHT);
+    draw_bitmap(0, 0, eyes_resting_bmp, SCREEN_WIDTH, SCREEN_HEIGHT, WHITE);
 }
+
+void oled_screen_class::eyes_resting_2()
+{
+    draw_bitmap(0, 0, eyes_resting_2_bmp, SCREEN_WIDTH, SCREEN_HEIGHT, WHITE);
+}
+
+/*/void oled_screen_class::main_menu_guide_selected()
+{
+    display.clearDisplay();
+    display.invertDisplay(true);
+    display.drawBitmap(0, 0, guide_button_bmp, SCREEN_WIDTH/2, SCREEN_HEIGHT/2, INVERSE);
+    display.invertDisplay(false);
+    display.drawBitmap(SCREEN_WIDTH/2, 0, score_button_bmp, SCREEN_WIDTH/2, SCREEN_HEIGHT/2, WHITE);
+    display.drawBitmap(0, SCREEN_HEIGHT/2, start_button_bmp, SCREEN_WIDTH/2, SCREEN_HEIGHT/2, WHITE);
+    display.drawBitmap(SCREEN_WIDTH/2, SCREEN_HEIGHT/2, more_button_bmp, SCREEN_WIDTH/2, SCREEN_HEIGHT/2, WHITE);
+    display.display();
+    wait(1000);
+}*/
