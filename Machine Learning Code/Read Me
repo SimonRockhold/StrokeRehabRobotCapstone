@@ -1,0 +1,5 @@
+Notes on machine learning code.
+Code will not run properly without file set up for training and validation photos.
+At the momment of upload (June 2020) code is tailered to access files from Dennis's Google drive. However other users will not have access
+Can easily configure to a seperate file once a new user has new training data
+For help doing this please feel free to contact Dennis for help.
