@@ -39,7 +39,8 @@ namespace //limits the scope of decalations inside namespace to this file.
   float voltage;
   float error;
   float previousError;
-  float desiredCoefficient; //For testing
+
+  long duration;
 } // namespace
 
 void setup()
@@ -54,8 +55,7 @@ void setup()
 
 void startup()
 //distinct from setup as is used to begin user related behavior rather than hardware requirements.
-{
-  welcomeMessage(); //will display a welcome message
+{ screen.print_text('Begin', 1);
   pinMode(BUTTON, INPUT);
   Timer calibrateStartupTimer = Timer(5 * SECOND);
   //wait for 5 seconds at startup. If button is pressed, recalibrate. otherwise, load from file.
@@ -70,15 +70,20 @@ void startup()
   }
   if (newCalibration)
   {
+    screen.print_text('Calibrating');
     calibrate();
+
+    // For debugging
+    screen.print_text('calibration complete');
+    delay(3000);
+    calibrationFromFile();  // Way to view calibration files
   }
   else
   {
     calibrationFromFile();
   }
-
-  screen.main_menu();
-  //menu selection not yet implemented.
+  screen.print_text('Beginning');
+  delay(1000);
   runSession();
 }
 
@@ -88,44 +93,24 @@ void loop()
 {
 }
 
-void lineFollowTest()
-// Robot follows the line indefinitely, logs sensor data for duration set by logTimer.
-{
-  Kp = getCoefficient(); //For testing PID values, set testing for Kp or Kd by changing values here
-
-  readSensor(); //Collects data from sensors and stores in an array
-  direction = calculatePID();
-  propForward(direction);
-
-  if (!logTimer.timeElapsed())
-  {
-    logToSD();
-  }
-  else
-  {
-    //Serial.println("done");
-    digitalWrite(13, HIGH);
-  }
-}
-
 void runSession()
 {
-  followLine();
   screen.display_score();
-  // waits until button is pressed, then returns to menu
+  followLine();
+  
+  // waits for ultrasound sensor to detect 'touch'
   while (true)
   {
     if (digitalRead(BUTTON))
     {
-      menu();
+      screen.print_text('Game stopped', 1);
+      exit(0);
     }
-  }
-}
+    if (runUltrasound() <= 20)
+      runSession();  // Would like to add in some victory animation/message for successful touch
 
-void menu()
-// menu selection not yet implemented
-{
-  screen.main_menu();
+      // Here we can add methods to store data
+  }
 }
 
 void followLine()
@@ -133,14 +118,11 @@ void followLine()
   Timer runTimer = Timer(SESSION_DURATION);
   while (!runTimer.timeElapsed())
   {
-    Kp = getCoefficient(); //For testing PID values, set testing for Kp or Kd by changing values here
-
     readSensor(); //Collects data from sensors and stores in an array
     direction = calculatePID();
     propForward(direction);
   }
-  screen.display_score(); //Display score, wait for 5 seconds without input, then allow user to press button to continue.
-  delay(5 * SECOND);
+  
 }
 float getRatio()
 {
@@ -195,7 +177,6 @@ float calculatePID()
   P = error;
   I = I + error;
   D = error - previousError;
-  Serial.println(Kp); //Can't print while device is running, since potentiometer saves physical location the correct Kp should print whenr recconnected
 
   return (Kp * P) + (Ki * I) + (Kd * D);
 }
@@ -217,15 +198,6 @@ void propForward(float PIDval)
   rightMotor.drive(speed2);
 }
 
-// For testing with a potentiometer
-float getCoefficient()
-{
-  voltage = analogRead(A3);
-  desiredCoefficient = map(voltage, 0, 1023, 0, 500); //Change range of Kp/Kd values here (Syntax: map(value, fromLow, fromHigh, toLow, toHigh))
-
-  return desiredCoefficient;
-}
-
 void calibrate()
 {
   //collects sensor data and defines the maximum and minimum line brightness values
@@ -233,7 +205,7 @@ void calibrate()
   //initialize temporary max and min, set max equal to real min, min equal to real max
   int tempMax = SENSOR_MIN;
   int tempMin = SENSOR_MAX;
-  Serial.println("calibrating...");
+  //Serial.println("calibrating...");
   //writeToScreen("calibrating..."); //so far unimplemented, to replace printing information to serial
   while (!calibrationTimer.timeElapsed())
   {               // perform calibration for set time.
@@ -243,38 +215,21 @@ void calibrate()
     tempMax = getMax(tempMax);
     tempMin = getMin(tempMin);
   }
-  Serial.println("calibration complete");
-  Serial.println(tempMax);
-  Serial.println(tempMin);
+  //Serial.println("calibration complete");
+  //Serial.println(tempMax);
+  //Serial.println(tempMin);
 
   //Now that we have the absolute max and min the sensors found, we can modify those to find an operational range. This will hopefully account for outliers
   //Modifiers can be increase or decreased as needed
   //Honestly, we might want to completely remove modifiers, as there's a chance in the IRdirection function it'll create negatives where we don't want them
 
-  maxIR = 0.9 * tempMax;
-  minIR = 1.1 * tempMin;
+  maxIR = 1.1 * tempMax;
+  minIR = 0.9 * tempMin;
 
   Calibration values;
   calibrationVals.write((byte *)&values, sizeof(values));
 }
 
-void logToSD()
-//writes the current state of the sensor array to a file called "SensorLog.txt" one line at a time;
-{
-  String temp = "";
-  for (int i = 0; i < NUM_SENSORS; i++)
-  {
-    temp += sensorDataRaw[i];
-    if (i < (NUM_SENSORS - 1))
-    {
-      temp += ", ";
-    }
-  }
-  sensorRecord.printToSD(temp);
-  Serial.println(temp);
-}
-
-// smaller version of getMax and getMin using loops
 int getMax(int tempMax)
 {
   //Compares all readings from the IR sensors to the temporary max
@@ -295,19 +250,62 @@ int getMin(int tempMin)
   return tempMin; //Returns tempMin to the calibrate while loop
 }
 
+void calibrationFromFile()
+//sets the calibration values from the previous values stored on SD in "calibr.dat"
+{
+  //Serial.println("reading previous calibration values from file");
+
+  Calibration vals;
+  calibrationVals.read((byte *)&vals, sizeof(vals));
+  maxIR = vals.max_ir;
+  minIR = vals.min_ir;
+
+  screen.print_text(maxIR);
+  delay(3000);
+  screen.print_text(minIR);
+  delay(3000);
+}
+
+byte runUltrasound() {
+  
+  pinMode(trigger, OUTPUT);
+  digitalWrite(trigger, LOW);
+  delayMicroseconds(2);
+  digitalWrite(trigger, HIGH);
+  delayMicroseconds(5);
+  digitalWrite(trigger, LOW);
+  
+  duration = pulseIn(echo, HIGH);
+
+  // convert the time into a distance
+  return byte(duration / 74 / 2);
+}
+
+
+
+// Not currently in use
+
+/*
+void logToSD()
+//writes the current state of the sensor array to a file called "SensorLog.txt" one line at a time;
+{
+  String temp = "";
+  for (int i = 0; i < NUM_SENSORS; i++)
+  {
+    temp += sensorDataRaw[i];
+    if (i < (NUM_SENSORS - 1))
+    {
+      temp += ", ";
+    }
+  }
+  sensorRecord.printToSD(temp);
+  Serial.println(temp);
+}
+
 void welcomeMessage()
 //displays a welcome message
 {
   screen.print_text("Welcome!");
 }
 
-void calibrationFromFile()
-//sets the calibration values from the previous values stored on SD in "calibr.dat"
-{
-  Serial.println("reading previous calibration values from file");
-
-  Calibration vals;
-  calibrationVals.read((byte *)&vals, sizeof(vals));
-  maxIR = vals.max_ir;
-  minIR = vals.min_ir;
-}
+*/

@@ -69,4 +69,7 @@ const int IRSensor[] = {sensor0, sensor1, centerSensor, sensor3, sensor4};
 #define display_write A3
 #define display_read A4
 
+#define trigger 2  // Need to find another pin, or determine if we can use two
+#define echo 2
+
 }//end of namespace defs
