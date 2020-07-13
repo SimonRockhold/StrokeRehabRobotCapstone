@@ -46,8 +46,8 @@ void setup()
 //all actions that are only done once
 {
   pinMode(13, OUTPUT); //only needed once so done in setup()
-  Serial.begin(9600);
-  Serial.println("Connected"); //quick check to make sure device is communicating
+  //Serial.begin(9600);
+  //Serial.println("Connected"); //quick check to make sure device is communicating
 
   startup();
 }
@@ -76,8 +76,6 @@ void startup()
   {
     calibrationFromFile();
   }
-
-  Serial.println(maxIR);
 
   screen.main_menu();
   //menu selection not yet implemented.
