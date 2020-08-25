@@ -1,11 +1,15 @@
+#include <SPI.h>
+#include <Wire.h>
 #include <SparkFun_TB6612.h>
-#include <Adafruit_SSD1306.h>
 #include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
 #include "common.h"
 #include "Timer.h"
-#include <SPI.h>
+
 
 using namespace defs; //inlcudes all definitions made in common.h
+
+Adafruit_SSD1306 display = Adafruit_SSD1306(128, 64, &Wire);
 
 namespace //limits the scope of decalations inside namespace to this file.
 {
@@ -16,44 +20,50 @@ namespace //limits the scope of decalations inside namespace to this file.
   Timer outputTimer = Timer(SECOND);  // one second interval between outputs
   Timer logTimer = Timer(SECOND * 5); // set a timer to log all values during that time.
 
-  Adafruit_SSD1306 display = Adafruit_SSD1306(128, 64, &Wire);
-
   int maxIR = SENSOR_MAX;
   int minIR = SENSOR_MIN;
   //int maxIR = 800; //not currently used as calibrate method is functional
   //int minIR = 180;
 
-  float Kp = 1; //This will change using the button during testing
+  float Kp = 100; //This will change using the button during testing
   float Kd = 0; //This will change using the button during testing
   float Ki = 0;
   float P, I, D;
   float direction;
-
-  float voltage;
+  
   float error;
   float previousError;
 
   long duration;
+
+  //For the button sensitivity
+  int buttonState;
+  int lastButtonState = LOW;
+
+  unsigned long lastTime = 0;
+  unsigned long debounce = 1;
 } // namespace
 
 void setup()
 //all actions that are only done once
 {
   pinMode(13, OUTPUT); //only needed once so done in setup()
-  pinMode(buttonPin, INPUT);
-  //Serial.begin(9600);
+  pinMode(BUTTON, INPUT);
+  Serial.begin(9600);
   //Serial.println("Connected"); //quick check to make sure device is communicating
 
   display.begin(SSD1306_SWITCHCAPVCC, 0x3C); // begins display, displays arduino logo by default
   display.clearDisplay(); //This will clear the adafruit logo
-
-  display.setTextSize(1);
+  
+  display.setTextSize(2);
+  display.setTextColor(SSD1306_WHITE);
   display.setCursor(0, 0);
 
-  display.print("Starting");
+  display.println("Starting");
   display.display();
   delay(3000);
   display.clearDisplay();
+  //exit(0);
 
 }
 
@@ -143,17 +153,44 @@ void propForward(float PIDval)
 }
 
 // Adjust Kp below to change to testing Kd or Ki, also adjust some values in common.h
-void PIDadjust(); {
+void PIDadjust() {
 
-  if(buttonPin == HIGH) {
-    
-    Kp += increaseBy; //Specifically for Kp, can update for Kd and Ki
+  int state = digitalRead(BUTTON);
+
+  //Approach 1 (no adjustment for noise)
+  if (state == HIGH) {
+    Kp += increaseBy;
+  }
+  
+  //Approach 2 (adjusts for noise)
+
+  //Stores time button changed from LOW to HIGH or vice versa
+  if(state != lastButtonState) {
+    lastTime = millis();
   }
 
+  //Checks if button has held the same state for <debounce> milliseconds
+  if ((millis() - lastTime) > debounce) {
+
+    //If the current state is different than what the button was previously, update it
+    if (state != buttonState) {
+      buttonState = state;
+
+      //Checks to see if button is currently HIGH
+      if (buttonState == HIGH) {
+        Kp += increaseBy; //Specifically for Kp, can update for Kd and Ki
+      }
+    }
+  }
+  //Updates previous button state
+  lastButtonState = state;
+  
+  
 }
 
 void updatePID() {
   display.clearDisplay();
-  display.print(Kp); //Adjust this for changing Kd or Ki
+  display.setCursor(0, 0);
+  display.println(Kp); //Adjust this for changing Kd or Ki
   display.display();
 }
