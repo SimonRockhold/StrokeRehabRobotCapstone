@@ -36,8 +36,8 @@ const int SPEED = 75;
 
 // these constants are used to allow you to make your motor configuration
 // line up with function names like forward.  Value can be 1 or -1
-const int offsetA = 1;
-const int offsetB = -1; //                                                     Change one of these, can't remember which
+const int offsetA = -1;
+const int offsetB = 1; //                                                     Change one of these, can't remember which
 
 //Digital
 #define AIN1 7
@@ -70,10 +70,9 @@ const int IRSensor[] = {sensor0, sensor1, centerSensor, sensor3, sensor4};
 #define display_read A4
 
 #define trigger 2  // Need to find another pin, or determine if we can use two
-#define echo 2
+#define echo A3
 
 // SPECIFICALLY FOR THIS TEST
-#define buttonPin -1 //Adjust this to follow button pin
-int increaseBy = 25
+int increaseBy = 25;
 
 }//end of namespace defs
