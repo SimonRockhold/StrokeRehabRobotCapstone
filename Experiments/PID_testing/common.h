@@ -58,18 +58,18 @@ const int offsetB = 1; //                                                     Ch
 #define SCK 13
 
 //Analog
-//sensor pins, reflects current wiring (2/18/2020)
-#define sensor0 A2
-#define sensor1 A1
-#define centerSensor A0
-#define sensor3 A7
-#define sensor4 A6
+//sensor pins, reflects current wiring (8/24/2020)
+#define sensor0 A1
+#define sensor1 A0
+#define centerSensor A2
+#define sensor3 A6
+#define sensor4 A7
 const int IRSensor[] = {sensor0, sensor1, centerSensor, sensor3, sensor4};
 
 #define display_write A3
 #define display_read A4
 
-#define trigger 2  // Need to find another pin, or determine if we can use two
+#define trigger 2
 #define echo A3
 
 // SPECIFICALLY FOR THIS TEST
