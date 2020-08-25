@@ -2,7 +2,7 @@
 #include "ui_button_class.h"
 
 // Local Variables
-int buttonPin = 2;              // TO DO: Move Pin Assignment To Global Pin Assignment List
+char buttonPin = PD1;              // TO DO: Move Pin Assignment To Global Pin Assignment List
 int ledPin = 13;
 int select = 0;
 int next   = 0;
@@ -31,10 +31,10 @@ int ui_button_class::checkNext()
 
 void ui_button_class::ui_button_setup()
 {
+  PCMSK2 |= bit (PCINT17); 	// Pin TXO
+  PCIFR	 |= bit (PCIF2);	// Clear any outstanding interrupts
+  PCICR  |= bit (PCIE2);	// Enable pin change interrupts for PCINT23 to PCINT16
 
-  EICRA &= ~3;  // clear existing flags
-  EICRA |= 1;   // set wanted flags (change level interrupt)
-  EIMSK |= 1;   // enable it
   pinMode(buttonPin, INPUT_PULLUP);
   pinMode(ledPin, OUTPUT);
 }
@@ -75,7 +75,7 @@ void buttonEvent()
   }
 }
 
-ISR(INT0_vect)
+ISR(PCINT2_vect)
 {
   buttonEvent();
 }

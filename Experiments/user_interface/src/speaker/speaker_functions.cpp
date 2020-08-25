@@ -3,7 +3,7 @@
 
 
 // Local Variables
-int buzzer_pin = 11;            // Pin assignment for Buzzer, must be a Digital PWM(~) capable pin
+int buzzer_pin = 10;            // Pin assignment for Buzzer, must be a Digital PWM(~) capable pin
 int divider = 0, noteDuration = 0;
 
 
