@@ -25,8 +25,8 @@ namespace //limits the scope of decalations inside namespace to this file.
   //int maxIR = 800; //not currently used as calibrate method is functional
   //int minIR = 180;
 
-  float Kp = 100; //This will change using the button during testing
-  float Kd = 0; //This will change using the button during testing
+  float Kp = 26; //This will change using the button during testing
+  float Kd = 90; //This will change using the button during testing
   float Ki = 0;
   float P, I, D;
   float direction;
@@ -41,7 +41,12 @@ namespace //limits the scope of decalations inside namespace to this file.
   int lastButtonState = LOW;
 
   unsigned long lastTime = 0;
-  unsigned long debounce = 1;
+  unsigned long debounce = 75;
+
+
+  // SPECIFICALLY FOR THIS TEST
+  int increaseBy = 0;
+
 } // namespace
 
 void setup()
@@ -145,22 +150,27 @@ void readSensor()
 
 void propForward(float PIDval)
 {
-  int speed1 = SPEED + PIDval;
+  int speed1 = SPEED + PIDval + increaseBy;
   int speed2 = SPEED - PIDval;
 
-  leftMotor.drive(speed1);
-  rightMotor.drive(speed2);
+  //Added to make sure speeds don't exceed 255 or dip below 0, not sure if necessary but have noticed straing behavior
+  speed1 = constrain(speed1, 0, 255);
+  speed2 = constrain(speed2, 0, 255);
+  
+  leftMotor.drive(speed2);
+  rightMotor.drive(speed1);
 }
 
 // Adjust Kp below to change to testing Kd or Ki, also adjust some values in common.h
 void PIDadjust() {
 
   int state = digitalRead(BUTTON);
-
+  /*
   //Approach 1 (no adjustment for noise)
   if (state == HIGH) {
     Kp += increaseBy;
   }
+  */
   
   //Approach 2 (adjusts for noise)
 
@@ -178,7 +188,9 @@ void PIDadjust() {
 
       //Checks to see if button is currently HIGH
       if (buttonState == HIGH) {
-        Kp += increaseBy; //Specifically for Kp, can update for Kd and Ki
+        increaseBy += 1; //Specifically for Kp, can update for Kd and Ki
+        brake(leftMotor, rightMotor);
+        delay(1000);
       }
     }
   }
@@ -186,11 +198,14 @@ void PIDadjust() {
   lastButtonState = state;
   
   
+  
 }
 
 void updatePID() {
   display.clearDisplay();
   display.setCursor(0, 0);
-  display.println(Kp); //Adjust this for changing Kd or Ki
+  display.println(increaseBy); //Adjust this for changing Kd or Ki
+  float temp = getRatio();
+  display.println(temp);
   display.display();
 }
