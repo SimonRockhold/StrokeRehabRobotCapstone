@@ -74,6 +74,6 @@ const int IRSensor[] = {sensor0, sensor1, centerSensor, sensor3, sensor4};
 
 // SPECIFICALLY FOR THIS TEST
 #define buttonPin -1 //Adjust this to follow button pin
-int increaseBy = 25
+int increaseBy = 25;
 
 }//end of namespace defs
