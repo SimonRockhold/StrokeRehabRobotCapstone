@@ -45,7 +45,7 @@ namespace //limits the scope of decalations inside namespace to this file.
 
 
   // SPECIFICALLY FOR THIS TEST
-  int increaseBy = 0;
+  int increaseBy = 1;
 
 } // namespace
 
@@ -188,7 +188,7 @@ void PIDadjust() {
 
       //Checks to see if button is currently HIGH
       if (buttonState == HIGH) {
-        increaseBy += 1; //Specifically for Kp, can update for Kd and Ki
+        Kd += increaseBy; //Specifically for Kp, can update for Kd and Ki
         brake(leftMotor, rightMotor);
         delay(1000);
       }
@@ -204,7 +204,7 @@ void PIDadjust() {
 void updatePID() {
   display.clearDisplay();
   display.setCursor(0, 0);
-  display.println(increaseBy); //Adjust this for changing Kd or Ki
+  display.println(Kd); //Adjust this for changing Kd or Ki
   float temp = getRatio();
   display.println(temp);
   display.display();
